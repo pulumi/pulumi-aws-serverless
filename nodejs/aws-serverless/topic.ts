@@ -67,7 +67,7 @@ export class TopicEventSubscription extends EventSubscription {
         name: string, topic: sns.Topic, func: lambda.Function,
         args: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
-        super("aws-serverless:topic:TopicSubscription", name, func, { topic: topic }, opts);
+        super("aws-serverless:topic:TopicEventSubscription", name, func, { topic: topic }, opts);
 
         this.permission = new aws.lambda.Permission(name, {
             action: "lambda:invokeFunction",

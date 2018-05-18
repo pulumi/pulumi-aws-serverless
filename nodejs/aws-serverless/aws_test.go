@@ -37,6 +37,16 @@ func Test_Examples(t *testing.T) {
 			},
 		},
 		{
+			Dir: path.Join(cwd, "./examples/cloudwatch"),
+			Config: map[string]string{
+				"aws:region":     region,
+				"cloud:provider": "aws",
+			},
+			Dependencies: []string{
+				"@pulumi/aws-serverless",
+			},
+		},
+		{
 			Dir: path.Join(cwd, "./examples/topic"),
 			Config: map[string]string{
 				"aws:region":     region,

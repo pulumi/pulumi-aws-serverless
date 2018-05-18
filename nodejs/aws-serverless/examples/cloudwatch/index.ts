@@ -18,7 +18,7 @@ serverless.topic.subscribe("process-topic", topic, async (event) => {
     }
 });
 
-serverless.cloudwatch.onEvent("hourly", "", async (event) => {
+serverless.cloudwatch.onEvent("hourly", "rate(60 minute)", async (event) => {
     const awssdk = await import("aws-sdk");
     const sns = new awssdk.SNS();
 

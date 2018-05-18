@@ -40,11 +40,11 @@ export type BucketPutArgs = SimpleBucketSubscriptionArgs;
 export type BucketDeleteArgs = SimpleBucketSubscriptionArgs;
 
 // See https://docs.aws.amazon.com/AmazonS3/latest/dev/notification-content-structure.html.
-export interface S3BucketNotificationEvent {
-    Records?: S3BucketNotificationEventRecord[];
+export interface BucketEvent {
+    Records?: BucketRecord[];
 }
 
-export interface S3BucketNotificationEventRecord {
+export interface BucketRecord {
     eventVersion: string;
     eventSource: string;
     awsRegion: string;
@@ -82,11 +82,11 @@ export interface S3BucketNotificationEventRecord {
 
 
 // tslint:disable:max-line-length
-export type BucketSubscriptionHandler = Handler<S3BucketNotificationEvent, void>;
+export type BucketEventHandler = Handler<BucketEvent, void>;
 
 export function onPut(
-    name: string, bucket: s3.Bucket, handler: BucketSubscriptionHandler,
-    args?: BucketPutArgs, opts?: pulumi.ResourceOptions): BucketSubscription {
+    name: string, bucket: s3.Bucket, handler: BucketEventHandler,
+    args?: BucketPutArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     args = args || {};
 
@@ -95,12 +95,12 @@ export function onPut(
         events: ["s3:ObjectCreated:*"],
     };
 
-    return subscribe(name + "-put", bucket, handler, argsCopy, opts);
+    return onEvent(name + "-put", bucket, handler, argsCopy, opts);
 }
 
 export function onDelete(
-    name: string, bucket: s3.Bucket, handler: BucketSubscriptionHandler,
-    args?: BucketDeleteArgs, opts?: pulumi.ResourceOptions): BucketSubscription {
+    name: string, bucket: s3.Bucket, handler: BucketEventHandler,
+    args?: BucketDeleteArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     args = args || {};
 
@@ -109,7 +109,7 @@ export function onDelete(
         events: ["s3:ObjectRemoved:*"],
     };
 
-    return subscribe(name + "-delete", bucket, handler, argsCopy, opts);
+    return onEvent(name + "-delete", bucket, handler, argsCopy, opts);
 }
 
 const defaultComputePolicies = [
@@ -123,9 +123,9 @@ const defaultComputePolicies = [
  * control over the subscription is wanted, and other helpers (like onPut/onDelete) are not
  * sufficient.
  */
-export function subscribe(
-    name: string, bucket: s3.Bucket, handler: BucketSubscriptionHandler,
-    args: BucketSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketSubscription {
+export function onEvent(
+    name: string, bucket: s3.Bucket, handler: BucketEventHandler,
+    args: BucketSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     let func: lambda.Function;
     if (handler instanceof lambda.Function) {
@@ -142,7 +142,7 @@ export function subscribe(
         func = serverlessFunction.lambda;
     }
 
-    return new BucketSubscription(name, bucket, func, args, opts);
+    return new BucketEventSubscription(name, bucket, func, args, opts);
 }
 
 interface Subscription {
@@ -162,14 +162,14 @@ let bucketSubscriptions = new Map<s3.Bucket, Subscription[]>();
  * actual aws.s3.BucketNotification instances will only be created once the pulumi program runs to
  * completion and all subscriptions have been heard about.
  */
-export class BucketSubscription extends pulumi.ComponentResource {
+export class BucketEventSubscription extends pulumi.ComponentResource {
     public readonly permission: lambda.Permission;
 
     public constructor(
         name: string, bucket: s3.Bucket, func: lambda.Function,
         args: BucketSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
-        super("aws-serverless:bucket:BucketSubscription", name, { bucket: bucket, function: func }, opts);
+        super("aws-serverless:bucket:BucketEventSubscription", name, { bucket: bucket, function: func }, opts);
 
         const permission = new aws.lambda.Permission(name, {
             function: func,

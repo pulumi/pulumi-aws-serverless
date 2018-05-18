@@ -169,7 +169,7 @@ export class BucketSubscription extends pulumi.ComponentResource {
         name: string, bucket: s3.Bucket, func: lambda.Function,
         args: BucketSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
-        super("aws-infra:bucket:BucketSubscription", name, { bucket: bucket, function: func }, opts);
+        super("aws-serverless:bucket:BucketSubscription", name, { bucket: bucket, function: func }, opts);
 
         const permission = new aws.lambda.Permission(name, {
             function: func,

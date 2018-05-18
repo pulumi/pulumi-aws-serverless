@@ -1,7 +1,7 @@
 // Copyright 2016-2017, Pulumi Corporation.  All rights reserved.
 
 import * as aws from "@pulumi/aws";
-import * as awsinfra from "@pulumi/aws-infra";
+import * as serverless from "@pulumi/aws-serverless";
 import * as pulumi from "@pulumi/pulumi";
 import { Output } from "@pulumi/pulumi";
 
@@ -16,7 +16,7 @@ const bucket = new aws.s3.Bucket("testbucket", {
     forceDestroy: true,
 });
 
-awsinfra.serverless.bucket.onPut("test", bucket, async (event) => {
+serverless.bucket.onPut("test", bucket, async (event) => {
     const awssdk = await import("aws-sdk");
     const s3 = new awssdk.S3();
 

@@ -16,6 +16,6 @@
         "typescript": "^2.1.4"
     },
     "peerDependencies": {
-        "@pulumi/aws-infra": "latest"
+        "@pulumi/aws-serverless": "latest"
     }
 }

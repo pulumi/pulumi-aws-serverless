@@ -33,7 +33,7 @@ func Test_Examples(t *testing.T) {
 				"cloud:provider": "aws",
 			},
 			Dependencies: []string{
-				"@pulumi/aws-infra",
+				"@pulumi/aws-serverless",
 			},
 		},
 	}

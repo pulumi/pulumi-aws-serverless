@@ -1,15 +1,12 @@
 // Copyright 2016-2017, Pulumi Corporation.  All rights reserved.
 
-import * as aws from "@pulumi/aws";
-import { lambda, s3, serverless } from "@pulumi/aws";
+import { lambda } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { createLambdaFunction, Handler } from "./function";
-import * as utils from "./utils";
 
 /**
  * Base type for all subscription types.
  */
-export class Subscription extends pulumi.ComponentResource {
+export class EventSubscription extends pulumi.ComponentResource {
     public permission: lambda.Permission;
     public func: lambda.Function;
 

@@ -4,13 +4,13 @@ import * as aws from "@pulumi/aws";
 import { lambda, sns } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./function";
-import { Subscription } from "./subscription";
+import { EventSubscription } from "./subscription";
 
-export interface TopicNotificationEvent {
-    Records: TopicNotificationRecord[];
+export interface TopicEvent {
+    Records: TopicRecord[];
 }
 
-export interface TopicNotificationRecord {
+export interface TopicRecord {
     EventVersion: string;
     EventSubscriptionArn: string;
     EventSource: string;
@@ -36,7 +36,7 @@ export interface SNSMessageAttribute {
     Value: string;
 }
 
-export type TopicSubscriptionHandler = Handler<TopicNotificationEvent, void>;
+export type TopicEventHandler = Handler<TopicEvent, void>;
 
 /**
  * Arguments to control the topic subscription.  Currently empty, but still defined in case of
@@ -49,15 +49,15 @@ export type TopicSubscriptionArgs = { };
  * options to control the behavior of the subscription.
  */
 export function subscribe(
-    name: string, topic: sns.Topic, handler: TopicSubscriptionHandler,
-    args?: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicSubscription {
+    name: string, topic: sns.Topic, handler: TopicEventHandler,
+    args?: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicEventSubscription {
 
     args = args || {};
     const func = createLambdaFunction(name + "-topic-subscription", handler, opts);
-    return new TopicSubscription(name, topic, func, args, opts);
+    return new TopicEventSubscription(name, topic, func, args, opts);
 }
 
-export class TopicSubscription extends Subscription {
+export class TopicEventSubscription extends EventSubscription {
     /**
      * The underlying sns object created for the subscription.
      */

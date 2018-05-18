@@ -9,7 +9,18 @@ import { EventSubscription } from "./subscription";
 export interface CloudwatchEventArgs {
 }
 
-export type CloudwatchEventHandler = Handler<{}, void>;
+export interface CloudwatchEvent {
+    account: string;
+    region: string;
+    detail: any;
+    "detail-type": string;
+    source: string;
+    time: string;
+    id: string;
+    resources: string[];
+}
+
+export type CloudwatchEventHandler = Handler<CloudwatchEvent, void>;
 
 export function onEvent(name: string, schedule: string, handler: CloudwatchEventHandler, args?: CloudwatchEventArgs, opts?: pulumi.ResourceOptions): CloudwatchEventSubscription;
 export function onEvent(name: string, rule: cloudwatch.EventRule, handler: CloudwatchEventHandler, args?: CloudwatchEventArgs, opts?: pulumi.ResourceOptions): CloudwatchEventSubscription;

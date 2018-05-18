@@ -50,8 +50,9 @@ export type TopicSubscriptionArgs = { };
  */
 export function subscribe(
     name: string, topic: sns.Topic, handler: TopicSubscriptionHandler,
-    args: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicSubscription {
+    args?: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicSubscription {
 
+    args = args || {};
     const func = createLambdaFunction(name + "-topic-subscription", handler, opts);
     return new TopicSubscription(name, topic, func, args, opts);
 }

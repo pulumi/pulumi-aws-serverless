@@ -1,0 +1,23 @@
+{
+    "name": "topic",
+    "version": "0.1",
+    "main": "bin/index.js",
+    "typings": "bin/index.d.ts",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@pulumi/pulumi": "^0.12.0",
+        "@pulumi/aws": "^0.12.0",
+        "node-fetch": "^1.7.3"
+    },
+    "devDependencies": {
+        "@types/aws-sdk": "^2.7.0",
+        "@types/node": "^8.0.27",
+        "@types/node-fetch": "^1.6.7",
+        "typescript": "^2.1.4"
+    },
+    "peerDependencies": {
+        "@pulumi/aws-serverless": "latest"
+    }
+}

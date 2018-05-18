@@ -1,10 +1,10 @@
 // Copyright 2016-2017, Pulumi Corporation.  All rights reserved.
 
 import * as aws from "@pulumi/aws";
-import { lambda, s3, serverless } from "@pulumi/aws";
+import { lambda, s3 } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { Handler } from "./function";
-import * as utils from "./utils";
+import { createLambdaFunction, Handler } from "./function";
+import { Subscription } from "./subscription";
 
 /**
  * Arguments to help customize a notification subscription for a bucket.
@@ -40,11 +40,11 @@ export type BucketPutArgs = SimpleBucketSubscriptionArgs;
 export type BucketDeleteArgs = SimpleBucketSubscriptionArgs;
 
 // See https://docs.aws.amazon.com/AmazonS3/latest/dev/notification-content-structure.html.
-export interface S3BucketNotificationEvent {
-    Records?: S3BucketNotificationEventRecord[];
+export interface BucketNotificationEvent {
+    Records?: BucketNotificationRecord[];
 }
 
-export interface S3BucketNotificationEventRecord {
+export interface BucketNotificationRecord {
     eventVersion: string;
     eventSource: string;
     awsRegion: string;
@@ -80,9 +80,7 @@ export interface S3BucketNotificationEventRecord {
     };
 }
 
-
-// tslint:disable:max-line-length
-export type BucketSubscriptionHandler = Handler<S3BucketNotificationEvent, void>;
+export type BucketSubscriptionHandler = Handler<BucketNotificationEvent, void>;
 
 export function onPut(
     name: string, bucket: s3.Bucket, handler: BucketSubscriptionHandler,
@@ -127,25 +125,11 @@ export function subscribe(
     name: string, bucket: s3.Bucket, handler: BucketSubscriptionHandler,
     args: BucketSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketSubscription {
 
-    let func: lambda.Function;
-    if (handler instanceof lambda.Function) {
-        func = handler;
-    } else {
-        const funcOpts: aws.serverless.FunctionOptions = {
-            policies: defaultComputePolicies,
-        };
-        const serverlessFunction = new aws.serverless.Function(
-            name + "-subscription",
-            funcOpts,
-            handler, opts);
-
-        func = serverlessFunction.lambda;
-    }
-
+    const func = createLambdaFunction(name + "-bucket-subscription", handler, opts);
     return new BucketSubscription(name, bucket, func, args, opts);
 }
 
-interface Subscription {
+interface SubscriptionInfo {
     name: string;
     events: string[];
     filterPrefix?: string;
@@ -154,7 +138,7 @@ interface Subscription {
     permission: aws.lambda.Permission;
 }
 
-let bucketSubscriptions = new Map<s3.Bucket, Subscription[]>();
+let bucketSubscriptionInfos = new Map<s3.Bucket, SubscriptionInfo[]>();
 
 /**
  * A component corresponding to a single underlying aws.s3.BucketNotification created for a bucket.
@@ -162,14 +146,12 @@ let bucketSubscriptions = new Map<s3.Bucket, Subscription[]>();
  * actual aws.s3.BucketNotification instances will only be created once the pulumi program runs to
  * completion and all subscriptions have been heard about.
  */
-export class BucketSubscription extends pulumi.ComponentResource {
-    public readonly permission: lambda.Permission;
-
+export class BucketSubscription extends Subscription {
     public constructor(
         name: string, bucket: s3.Bucket, func: lambda.Function,
         args: BucketSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
-        super("aws-serverless:bucket:BucketSubscription", name, { bucket: bucket, function: func }, opts);
+        super("aws-serverless:bucket:BucketSubscription", name, func, { bucket: bucket }, opts);
 
         const permission = new aws.lambda.Permission(name, {
             function: func,
@@ -184,10 +166,10 @@ export class BucketSubscription extends pulumi.ComponentResource {
         // https://github.com/terraform-providers/terraform-provider-aws/issues/1715.  So we push
         // the subscription information here, and then actually create the BucketNotification if
         // needed on process `beforeExit`.
-        let subscriptions = bucketSubscriptions.get(bucket);
+        let subscriptions = bucketSubscriptionInfos.get(bucket);
         if (!subscriptions) {
             subscriptions = [];
-            bucketSubscriptions.set(bucket, subscriptions);
+            bucketSubscriptionInfos.set(bucket, subscriptions);
         }
 
         subscriptions.push({
@@ -202,12 +184,12 @@ export class BucketSubscription extends pulumi.ComponentResource {
 }
 
 process.on("beforeExit", () => {
-    const copy = bucketSubscriptions;
+    const copy = bucketSubscriptionInfos;
 
     // Since we are generating more work on the event loop, we will casue `beforeExit` to be invoked again.
     // Make sure to clear out eh pending subscrpitions array so that we don't try to apply them again.
 
-    bucketSubscriptions = new Map();
+    bucketSubscriptionInfos = new Map();
 
     for (const [bucket, subscriptions] of copy) {
         const permissions = subscriptions.map(s => s.permission);

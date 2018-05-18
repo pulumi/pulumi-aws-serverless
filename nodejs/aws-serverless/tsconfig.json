@@ -18,6 +18,7 @@
         "bucket.ts",
         "function.ts",
         "index.ts",
+        "topic.ts",
         "utils.ts",
     ]
 }

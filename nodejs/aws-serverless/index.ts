@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as apigateway from "./api";
 import * as bucket from "./bucket";
 import * as cloudwatch from "./cloudwatch";
 import * as topic from "./topic";
 
-export { bucket, cloudwatch, topic };
+export { apigateway, bucket, cloudwatch, topic };

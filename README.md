@@ -3,11 +3,3 @@
 # Pulumi Amazon Web Services (AWS) Serverless Components
 
 Pulumi's framework for useful serverless components
-
-
-# Changelog
-
-## Unreleased
-
-## Released
-

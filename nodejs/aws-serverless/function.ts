@@ -23,7 +23,7 @@ import { ResourceOptions } from "@pulumi/pulumi";
  * AWS lambda pre-8.10, a synchronous function must be provided.  The synchronous function should
  * return nothing, and should instead invoke 'callback' when complete.
  */
-export type Callback<E, R> = (event: E, context: aws.serverless.Context, callback: (error: any, result: R) => void) => Promise<void> | void;
+export type Callback<E, R> = (event: E, context: aws.serverless.Context, callback: (error: any, result: R) => void) =>  Promise<R> | void;
 
 /**
  * Handler represents the appropriate type for functions that can take either an AWS lambda function
@@ -33,21 +33,21 @@ export type Handler<E, R> = Callback<E, R> | aws.lambda.Function;
 
 const defaultComputePolicies = [
     aws.iam.AWSLambdaFullAccess,                 // Provides wide access to "serverless" services (Dynamo, S3, etc.)
-    aws.iam.AmazonEC2ContainerServiceFullAccess, // Required for lambda compute to be able to run Tasks
 ];
 
 export function createLambdaFunction<E, R>(
-    name: string, handler: Handler<E, R>, opts: ResourceOptions | undefined): aws.lambda.Function {
+    name: string, handler: Handler<E, R>, opts?: ResourceOptions): aws.lambda.Function {
 
-    if (handler instanceof aws.lambda.Function) {
-        return handler;
-    } else {
+    if (typeof handler === "function") {
         const funcOpts: aws.serverless.FunctionOptions = {
             policies: defaultComputePolicies,
+            includePaths: [],
         };
         const serverlessFunction = new aws.serverless.Function(
             name, funcOpts, handler, opts);
 
         return serverlessFunction.lambda;
+    } else {
+        return handler;
     }
 }

@@ -23,7 +23,7 @@ import { ResourceOptions } from "@pulumi/pulumi";
  * AWS lambda pre-8.10, a synchronous function must be provided.  The synchronous function should
  * return nothing, and should instead invoke 'callback' when complete.
  */
-export type Callback<E, R> = (event: E, context: aws.serverless.Context, callback: (error: any, result: R) => void) =>  Promise<R> | void;
+export type Callback<E, R> = (event: E, context: aws.serverless.Context, callback: (error: any, result: R) => void) => Promise<R> | void;
 
 /**
  * Handler represents the appropriate type for functions that can take either an AWS lambda function

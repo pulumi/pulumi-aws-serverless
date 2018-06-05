@@ -10,8 +10,8 @@
     "homepage": "https://pulumi.io/pulumi-aws-serverless",
     "repository": "https://github.com/pulumi/pulumi-aws-serverless",
     "dependencies": {
-        "@pulumi/aws": "^0.12.0",
-        "@pulumi/pulumi": "^0.12.0"
+        "@pulumi/aws": "=0.13.1-dev-1528227220-ga5c628e",
+        "@pulumi/pulumi": "^0.12.3"
     },
     "devDependencies": {
         "@types/aws-sdk": "^2.7.0",

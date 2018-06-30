@@ -15,6 +15,7 @@
 import * as apigateway from "./api";
 import * as bucket from "./bucket";
 import * as cloudwatch from "./cloudwatch";
+import * as queue from "./queue";
 import * as topic from "./topic";
 
-export { apigateway, bucket, cloudwatch, topic };
+export { apigateway, bucket, cloudwatch, queue, topic };

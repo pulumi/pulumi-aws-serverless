@@ -11,7 +11,7 @@
     "homepage": "https://pulumi.io",
     "repository": "https://github.com/pulumi/pulumi-aws-serverless",
     "dependencies": {
-        "@pulumi/aws": "^0.14.0-rc1",
+        "@pulumi/aws": "^0.14.1-dev-1530315247-g2b541a9",
         "@pulumi/pulumi": "^0.14.0-rc1"
     },
     "devDependencies": {

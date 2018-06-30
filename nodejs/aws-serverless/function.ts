@@ -36,11 +36,16 @@ const defaultComputePolicies = [
 ];
 
 export function createLambdaFunction<E, R>(
-    name: string, handler: Handler<E, R>, opts?: ResourceOptions): aws.lambda.Function {
+    name: string, handler: Handler<E, R>, opts?: ResourceOptions, additionalPolicies?: string[]): aws.lambda.Function {
 
     if (typeof handler === "function") {
+        const policies = defaultComputePolicies.slice();
+        if (additionalPolicies) {
+            policies.push(...additionalPolicies);
+        }
+
         const funcOpts: aws.serverless.FunctionOptions = {
-            policies: defaultComputePolicies,
+            policies: policies,
             includePaths: [],
         };
         const serverlessFunction = new aws.serverless.Function(

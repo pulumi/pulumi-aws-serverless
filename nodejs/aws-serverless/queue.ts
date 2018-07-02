@@ -46,11 +46,11 @@ export type QueueEventHandler = Handler<QueueEvent, void>;
  */
 export type QueueSubscriptionArgs = {
     /**
-     * From https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html.
-     *
      * The largest number of records that AWS Lambda will retrieve. The maximum batch size supported
      * by Amazon Simple Queue Service is up to 10 queue messages per batch. The default setting is
      * 10.
+     *
+     * See https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html for more details.
      */
     batchSize?: number;
  };

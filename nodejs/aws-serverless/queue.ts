@@ -23,20 +23,20 @@ export interface QueueEvent {
 }
 
 export interface QueueRecord {
-    "messageId": string;
-    "receiptHandle": string;
-    "body": string;
-    "attributes": {
-        "ApproximateReceiveCount": string;
-        "SentTimestamp": string;
-        "SenderId": string;
-        "ApproximateFirstReceiveTimestamp": string;
+    messageId: string;
+    receiptHandle: string;
+    body: string;
+    attributes: {
+        ApproximateReceiveCount: string;
+        SentTimestamp: string;
+        SenderId: string;
+        ApproximateFirstReceiveTimestamp: string;
     };
-    "messageAttributes": Record<string, any>;
-    "md5OfBody": string;
-    "eventSource": string;
-    "eventSourceARN": string;
-    "awsRegion": string;
+    messageAttributes: Record<string, any>;
+    md5OfBody: string;
+    eventSource: string;
+    eventSourceARN: string;
+    awsRegion: string;
 }
 
 export type QueueEventHandler = Handler<QueueEvent, void>;

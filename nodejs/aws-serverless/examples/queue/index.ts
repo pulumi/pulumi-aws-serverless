@@ -14,8 +14,6 @@
 
 import * as aws from "@pulumi/aws";
 import * as serverless from "@pulumi/aws-serverless";
-import * as pulumi from "@pulumi/pulumi";
-import { Output } from "@pulumi/pulumi";
 
 const bucket = new aws.s3.Bucket("testbucket", {
     serverSideEncryptionConfiguration: {
@@ -38,9 +36,14 @@ serverless.queue.subscribe("subscription", sqsQueue, async (event) => {
 
     const recordFile = "lastEvent.json";
 
+    console.log("Storing sqs message to S3.");
     await s3.putObject({
         Bucket: bucket.id.get(),
         Key: recordFile,
         Body: JSON.stringify(event),
     }).promise();
+    console.log("Stored sqs message to S3.");
 }, { batchSize: 1 });
+
+export const queueUrl = sqsQueue.id;
+export const bucketUrl = bucket.id.apply(id => `s3://${id}`);

@@ -64,7 +64,9 @@ export function subscribe(
     args?: QueueSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription {
 
     args = args || {};
-    const func = createLambdaFunction(name + "-queue-subscription", handler, opts, [iam.AmazonSQSFullAccess]);
+    const func = createLambdaFunction(name + "-queue-subscription", handler, opts, {
+        policies: [aws.iam.AWSLambdaFullAccess, iam.AmazonSQSFullAccess],
+    });
     return new QueueEventSubscription(name, topic, func, args, opts);
 }
 

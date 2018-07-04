@@ -46,8 +46,8 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
 "@pulumi/aws@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@pulumi/aws/-/aws-0.14.0.tgz#84b8a742d26f6b305785a7ec4f385d1f6d1e5382"
+  version "0.14.1"
+  resolved "https://registry.yarnpkg.com/@pulumi/aws/-/aws-0.14.1.tgz#d0db840cf394f516737f4e2f0cfd450c1fa87ba9"
   dependencies:
     "@pulumi/pulumi" "^0.14.0"
     builtin-modules "3.0.0"
@@ -55,8 +55,8 @@
     resolve "^1.7.1"
 
 "@pulumi/pulumi@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-0.14.0.tgz#74903dd847d4681251b1255e5dec857f96ac20e1"
+  version "0.14.2"
+  resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-0.14.2.tgz#6b3454138526e7682f3ff8fe96acdfe093f43715"
   dependencies:
     google-protobuf "^3.5.0"
     grpc "^1.12.2"

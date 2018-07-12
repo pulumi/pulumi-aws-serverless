@@ -137,17 +137,11 @@ export class API extends pulumi.ComponentResource {
             },
         }, { parent: this });
 
-        // Create a stage, which is an addressable instance of the Rest API. Set it to point at the latest deployment.
-        this.stage = new aws.apigateway.Stage(name, {
-            restApi: this.restAPI,
-            deployment: this.deployment,
-            stageName: stageName,
-        }, { parent: this });
-
         // Expose the URL that the API is served at.
         this.url = this.deployment.invokeUrl.apply(url => url + stageName + "/");
 
         // Ensure that the permissions allow the API Gateway to invoke the lambdas.
+        const permissions = [];
         if (swaggerSpec) {
             for (const path of Object.keys(swaggerSpec.paths)) {
                 for (let method of Object.keys(swaggerSpec.paths[path])) {
@@ -167,10 +161,18 @@ export class API extends pulumi.ComponentResource {
                             principal: "apigateway.amazonaws.com",
                             sourceArn: this.deployment.executionArn.apply(arn => arn + stageName + "/" + method + path),
                         }, { parent: this });
+                        permissions.push(invokePermission);
                     }
                 }
             }
         }
+
+        // Create a stage, which is an addressable instance of the Rest API. Set it to point at the latest deployment.
+        this.stage = new aws.apigateway.Stage(name, {
+            restApi: this.restAPI,
+            deployment: this.deployment,
+            stageName: stageName,
+        }, { parent: this, dependsOn: permissions });
 
         this.registerOutputs({
             url: this.url,

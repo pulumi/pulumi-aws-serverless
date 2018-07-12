@@ -21,6 +21,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -108,9 +109,20 @@ func Test_Examples(t *testing.T) {
 
 func validateAPITest(isValid func(body string)) func(t *testing.T, stack integration.RuntimeValidationStackInfo) {
 	return func(t *testing.T, stack integration.RuntimeValidationStackInfo) {
+		var resp *http.Response
+		var err error
 		url := stack.Outputs["url"].(string)
-		resp, err := http.Get(url + "/b")
-		assert.NoError(t, err)
+		// Retry a couple times on 5xx
+		for i := 0; i < 2; i++ {
+			resp, err = http.Get(url + "/b")
+			if !assert.NoError(t, err) {
+				return
+			}
+			if resp.StatusCode < 500 {
+				break
+			}
+			time.Sleep(10 * time.Second)
+		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		assert.NoError(t, err)

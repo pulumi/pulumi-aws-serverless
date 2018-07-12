@@ -126,6 +126,15 @@ export class API extends pulumi.ComponentResource {
             restApi: this.restAPI,
             // Note: Set to empty to avoid creating an implicit stage, we'll create it explicitly below instead.
             stageName: "",
+            // Note: We set `variables` here because it forces recreation of the Deployment object
+            // whenever the body hash changes.  Because we use a blank stage name above, there will
+            // not actually be any stage created in AWS, and thus these variables will not actually
+            // end up anywhere.  But this will still cause the right replacement of the Deployment
+            // when needed.  The Stage allocated below will be the stable stage that always points
+            // to the latest deployment of the API.
+            variables: {
+                version: swaggerString.apply(sha1hash),
+            },
         }, { parent: this });
 
         // Create a stage, which is an addressable instance of the Rest API. Set it to point at the latest deployment.

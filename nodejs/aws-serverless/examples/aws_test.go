@@ -25,9 +25,6 @@ import (
 	"github.com/pulumi/pulumi/pkg/testing/integration"
 )
 
-// Fargate is only supported in `us-east-1`, so force Fargate-based tests to run there.
-const fargateRegion = "us-east-1"
-
 func Test_Examples(t *testing.T) {
 	region := os.Getenv("AWS_REGION")
 	if region == "" {
@@ -41,34 +38,53 @@ func Test_Examples(t *testing.T) {
 	}
 	examples := []integration.ProgramTestOptions{
 		{
-			Dir: path.Join(cwd, "./examples/bucket"),
+			Dir: path.Join(cwd, "./bucket"),
 			Config: map[string]string{
-				"aws:region":     region,
-				"cloud:provider": "aws",
+				"aws:region": region,
 			},
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
 		},
 		{
-			Dir: path.Join(cwd, "./examples/cloudwatch"),
+			Dir: path.Join(cwd, "./cloudwatch"),
 			Config: map[string]string{
-				"aws:region":     region,
-				"cloud:provider": "aws",
+				"aws:region": region,
 			},
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
 		},
 		{
-			Dir: path.Join(cwd, "./examples/topic"),
+			Dir: path.Join(cwd, "./topic"),
 			Config: map[string]string{
-				"aws:region":     region,
-				"cloud:provider": "aws",
+				"aws:region": region,
 			},
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
+		},
+		{
+			Dir: path.Join(cwd, "./queue"),
+			Config: map[string]string{
+				"aws:region": region,
+			},
+			Dependencies: []string{
+				"@pulumi/aws-serverless",
+			},
+		},
+		{
+			Dir: path.Join(cwd, "./api"),
+			Config: map[string]string{
+				"aws:region": region,
+			},
+			Dependencies: []string{
+				"@pulumi/aws-serverless",
+			},
+			EditDirs: []integration.EditDir{{
+				Dir:      "./api/step2",
+				Additive: true,
+			}},
 		},
 	}
 	for _, ex := range examples {

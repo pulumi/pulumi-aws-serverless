@@ -12,27 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as aws from "@pulumi/aws";
 import * as serverless from "@pulumi/aws-serverless";
 
-const topic = new aws.sns.Topic("sites-to-process-topic", { });
-
-serverless.topic.subscribe("for-each-url", topic, async (event) => {
-    const fetch = (await import("node-fetch")).default;
-
-    const records = event.Records || [];
-    for (const record of records) {
-        const url = record.Sns.Message;
-
-        console.log(`${url}: Processing`);
-
-        // Fetch the contents at the URL
-        console.log(`${url}: Getting`);
-        try {
-            const res = await fetch(url);
-        } catch (err) {
-            console.log(`${url}: Failed to GET`);
-            return;
-        }
-    }
+const api = new serverless.apigateway.API("myapi", {
+    routes: [
+        { method: "GET", path: "/b", handler: async (event) => {
+            return {
+                statusCode: 200,
+                body: "<h1>Hello world!</h1>",
+            };
+        }},
+    ],
 });
+
+export const url = api.url;

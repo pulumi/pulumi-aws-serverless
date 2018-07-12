@@ -565,8 +565,8 @@
     "pkg/workspace",
     "sdk/proto/go"
   ]
-  revision = "e1f34a842fbbe9806fde686c1064f83470eb5894"
-  version = "v0.14.0-rc1"
+  revision = "67a06a1e9d6425cabf0e8f8dc1e20dbecefffa08"
+  version = "v0.14.2"
 
 [[projects]]
   name = "github.com/pulumi/pulumi-aws"
@@ -862,6 +862,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9d281e7d24886e2d6a28c7a210f69fa92afd0ed551db5c7c1fb5e925e440e90b"
+  inputs-digest = "88b457f70417107ce5b8738dda2189b7c3487572dfdf77b1b195a48b028a049f"
   solver-name = "gps-cdcl"
   solver-version = 1

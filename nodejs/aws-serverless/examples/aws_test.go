@@ -16,9 +16,12 @@ package examples
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -81,9 +84,15 @@ func Test_Examples(t *testing.T) {
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
+			ExtraRuntimeValidation: validateAPITest(func(body string) {
+				assert.Equal(t, "Hello, world!", body)
+			}),
 			EditDirs: []integration.EditDir{{
 				Dir:      "./api/step2",
 				Additive: true,
+				ExtraRuntimeValidation: validateAPITest(func(body string) {
+					assert.Equal(t, "<h1>Hello world!</h1>", body)
+				}),
 			}},
 		},
 	}
@@ -95,5 +104,28 @@ func Test_Examples(t *testing.T) {
 		t.Run(example.Dir, func(t *testing.T) {
 			integration.ProgramTest(t, &example)
 		})
+	}
+}
+
+func validateAPITest(isValid func(body string)) func(t *testing.T, stack integration.RuntimeValidationStackInfo) {
+	return func(t *testing.T, stack integration.RuntimeValidationStackInfo) {
+		var resp *http.Response
+		var err error
+		url := stack.Outputs["url"].(string)
+		// Retry a couple times on 5xx
+		for i := 0; i < 2; i++ {
+			resp, err = http.Get(url + "/b")
+			if !assert.NoError(t, err) {
+				return
+			}
+			if resp.StatusCode < 500 {
+				break
+			}
+			time.Sleep(10 * time.Second)
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		assert.NoError(t, err)
+		isValid(string(body))
 	}
 }

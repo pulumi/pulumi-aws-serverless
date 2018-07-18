@@ -13,16 +13,12 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import * as serverless from "@pulumi/aws-serverless";
-import * as pulumi from "@pulumi/pulumi";
-import { Output } from "@pulumi/pulumi";
+import * as sns from "@pulumi/aws-serverless/sns";
 import * as nodeFetchModule from "node-fetch";
 
 const topic = new aws.sns.Topic("sites-to-process-topic", { });
 
-serverless.topic.subscribe("for-each-url", topic, async (event) => {
-    const awssdk = await import("aws-sdk");
-
+sns.topic.onEvent("for-each-url", topic, async (event) => {
     const fetch = (await import("node-fetch")).default;
 
     const records = event.Records || [];

@@ -15,8 +15,8 @@
 import * as aws from "@pulumi/aws";
 import { iam, lambda, sqs } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { createLambdaFunction, Handler } from "./function";
-import { EventSubscription } from "./subscription";
+import { createLambdaFunction, Handler } from "./../function";
+import { EventSubscription } from "./../subscription";
 
 export interface QueueEvent {
     Records: QueueRecord[];
@@ -44,7 +44,7 @@ export type QueueEventHandler = Handler<QueueEvent, void>;
 /**
  * Arguments to control the sqs subscription.
  */
-export type QueueSubscriptionArgs = {
+export type QueueEventSubscriptionArgs = {
     /**
      * The largest number of records that AWS Lambda will retrieve. The maximum batch size supported
      * by Amazon Simple Queue Service is up to 10 queue messages per batch. The default setting is
@@ -59,15 +59,15 @@ export type QueueSubscriptionArgs = {
  * Creates a new subscription to the given queue using the lambda provided, along with optional
  * options to control the behavior of the subscription.
  */
-export function subscribe(
-    name: string, topic: sqs.Queue, handler: QueueEventHandler,
-    args?: QueueSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription {
+export function onEvent(
+    name: string, queue: sqs.Queue, handler: QueueEventHandler,
+    args?: QueueEventSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription {
 
     args = args || {};
     const func = createLambdaFunction(name + "-queue-subscription", handler, opts, {
         policies: [aws.iam.AWSLambdaFullAccess, iam.AmazonSQSFullAccess],
     });
-    return new QueueEventSubscription(name, topic, func, args, opts);
+    return new QueueEventSubscription(name, queue, func, args, opts);
 }
 
 export class QueueEventSubscription extends EventSubscription {
@@ -78,7 +78,7 @@ export class QueueEventSubscription extends EventSubscription {
 
     public constructor(
         name: string, queue: sqs.Queue, func: lambda.Function,
-        args: QueueSubscriptionArgs, opts?: pulumi.ResourceOptions) {
+        args: QueueEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
         super("aws-serverless:queue:QueueEventSubscription", name, func, { queue: queue }, opts);
 
@@ -98,3 +98,17 @@ export class QueueEventSubscription extends EventSubscription {
         }, { parent: this });
     }
 }
+
+
+// Monkey-patch Queue to expose the members directly on it.
+
+declare module "@pulumi/aws/sqs/queue" {
+    export interface Queue {
+        onEvent(name: string, handler: QueueEventHandler,
+                args?: QueueEventSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription;
+    }
+}
+
+aws.sqs.Queue.prototype.onEvent = function (this: sqs.Queue, name, handler, args, opts) {
+    return onEvent(name, this, handler, args, opts);
+};

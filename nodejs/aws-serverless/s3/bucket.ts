@@ -21,7 +21,7 @@ import { EventSubscription } from "./../subscription";
 /**
  * Arguments to help customize a notification subscription for a bucket.
  */
-export interface SimpleBucketEventArgs {
+export interface CommonBucketSubscriptionArgs {
     /**
      * An optional prefix or suffix to filter down notifications.  See
      * aws.s3.BucketNotification.lambdaFunctions for more details.
@@ -30,7 +30,7 @@ export interface SimpleBucketEventArgs {
     filterSuffix?: string;
 }
 
-export interface BucketEventArgs extends SimpleBucketEventArgs {
+export interface BucketEventSubscriptionArgs extends CommonBucketSubscriptionArgs {
     /**
      * Events to subscribe to. For example: "[s3:ObjectCreated:*]".  Cannot be empty.
      */
@@ -42,7 +42,7 @@ export interface BucketEventArgs extends SimpleBucketEventArgs {
  * more events than just 'ObjectCreated' events are desired, the 'subscribe' function should be used
  * instead.
  */
-export interface ObjectCreatedArgs extends SimpleBucketEventArgs {
+export interface ObjectCreatedSubscriptionArgs extends CommonBucketSubscriptionArgs {
     // The type of event to listen for.  '*' is the default if not provided.
     event?: "*" | "Put" | "Post" | "Copy" | "CompleteMultipartUpload";
 }
@@ -52,7 +52,7 @@ export interface ObjectCreatedArgs extends SimpleBucketEventArgs {
  * more events than just 'ObjectRemoved' events are desired, the 'subscribe' function should be used
  * instead.
  */
-export interface ObjectRemovedArgs extends SimpleBucketEventArgs {
+export interface ObjectRemovedSubscriptionArgs extends CommonBucketSubscriptionArgs {
     // The type of event to listen for.  '*' is the default if not provided.
     event?: "*" | "Delete" | "DeleteMarkerCreated";
 }
@@ -104,7 +104,7 @@ export type BucketEventHandler = Handler<BucketEvent, void>;
 
 export function onObjectCreated(
     name: string, bucket: s3.Bucket, handler: BucketEventHandler,
-    args?: ObjectCreatedArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
+    args?: ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     args = args || {};
     args.event = args.event || "*";
@@ -115,12 +115,12 @@ export function onObjectCreated(
         events: ["s3:ObjectCreated:" + args.event],
     };
 
-    return onEvent(name + "-objectCreated", bucket, handler, argsCopy, opts);
+    return onEvent(name + "-object-created", bucket, handler, argsCopy, opts);
 }
 
 export function onObjectRemoved(
     name: string, bucket: s3.Bucket, handler: BucketEventHandler,
-    args?: ObjectRemovedArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
+    args?: ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     args = args || {};
     args.event = args.event || "*";
@@ -131,7 +131,7 @@ export function onObjectRemoved(
         events: ["s3:ObjectRemoved:" + args.event],
     };
 
-    return onEvent(name + "-objectRemoved", bucket, handler, argsCopy, opts);
+    return onEvent(name + "-object-removed", bucket, handler, argsCopy, opts);
 }
 
 const defaultComputePolicies = [
@@ -147,9 +147,9 @@ const defaultComputePolicies = [
  */
 export function onEvent(
     name: string, bucket: s3.Bucket, handler: BucketEventHandler,
-    args: BucketEventArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
+    args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
-    const func = createLambdaFunction(name + "-bucketEvent", handler, opts);
+    const func = createLambdaFunction(name + "-bucket-event", handler, opts);
     return new BucketEventSubscription(name, bucket, func, args, opts);
 }
 
@@ -173,7 +173,7 @@ let bucketSubscriptionInfos = new Map<s3.Bucket, SubscriptionInfo[]>();
 export class BucketEventSubscription extends EventSubscription {
     public constructor(
         name: string, bucket: s3.Bucket, func: lambda.Function,
-        args: BucketEventArgs, opts?: pulumi.ResourceOptions) {
+        args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
         super("aws-serverless:bucket:BucketEventSubscription", name, func, { bucket: bucket }, opts);
 
@@ -234,11 +234,11 @@ process.on("beforeExit", () => {
 declare module "@pulumi/aws/s3/bucket" {
     export interface Bucket {
         onObjectCreated(name: string, handler: BucketEventHandler,
-                        args?: ObjectCreatedArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
+                        args?: ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
         onObjectRemoved(name: string, handler: BucketEventHandler,
-                        args?: ObjectRemovedArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
+                        args?: ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
         onEvent(name: string, handler: BucketEventHandler,
-                args: BucketEventArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
+                args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
     }
 }
 

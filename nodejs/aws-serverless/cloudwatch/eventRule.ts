@@ -100,4 +100,3 @@ declare module "@pulumi/aws/cloudwatch/eventRule" {
 aws.cloudwatch.EventRule.prototype.onEvent = function (this: cloudwatch.EventRule, name, handler, args, opts) {
     return onEvent(name, this, handler, args, opts);
 };
-

@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as apigateway from "./api";
-import * as cloudwatch from "./cloudwatch";
-import * as dynamodb from "./dynamodb";
-import * as s3 from "./s3";
-import * as sns from "./sns";
-import * as sqs from "./sqs";
+import * as table from "./table";
 
-export { apigateway, cloudwatch, dynamodb, s3, sns, sqs, };
+export { table };

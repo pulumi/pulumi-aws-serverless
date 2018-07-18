@@ -15,8 +15,8 @@
 import * as aws from "@pulumi/aws";
 import { lambda, sns } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { createLambdaFunction, Handler } from "./function";
-import { EventSubscription } from "./subscription";
+import { createLambdaFunction, Handler } from "./../function";
+import { EventSubscription } from "./../subscription";
 
 export interface TopicEvent {
     Records: TopicRecord[];
@@ -54,18 +54,18 @@ export type TopicEventHandler = Handler<TopicEvent, void>;
  * Arguments to control the topic subscription.  Currently empty, but still defined in case of
  * future need.
  */
-export type TopicSubscriptionArgs = { };
+export type TopicEventSubscriptionArgs = { };
 
 /**
  * Creates a new subscription to the given topic using the lambda provided, along with optional
  * options to control the behavior of the subscription.
  */
-export function subscribe(
+export function onEvent(
     name: string, topic: sns.Topic, handler: TopicEventHandler,
-    args?: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicEventSubscription {
+    args?: TopicEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicEventSubscription {
 
     args = args || {};
-    const func = createLambdaFunction(name + "-topic-subscription", handler, opts);
+    const func = createLambdaFunction(name + "-topic-event", handler, opts);
     return new TopicEventSubscription(name, topic, func, args, opts);
 }
 
@@ -77,7 +77,7 @@ export class TopicEventSubscription extends EventSubscription {
 
     public constructor(
         name: string, topic: sns.Topic, func: lambda.Function,
-        args: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions) {
+        args: TopicEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
         super("aws-serverless:topic:TopicEventSubscription", name, func, { topic: topic }, opts);
 
@@ -95,3 +95,17 @@ export class TopicEventSubscription extends EventSubscription {
         }, { parent: this });
     }
 }
+
+// Monkey-patch Topic to expose the members directly on it.
+
+declare module "@pulumi/aws/sns/topic" {
+    export interface Topic {
+        onEvent(name: string, handler: TopicEventHandler,
+                args?: TopicEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicEventSubscription;
+    }
+}
+
+aws.sns.Topic.prototype.onEvent = function (this: sns.Topic, name, handler, args, opts) {
+    return onEvent(name, this, handler, args, opts);
+};
+

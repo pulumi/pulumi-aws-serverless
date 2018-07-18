@@ -12,10 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as apigateway from "./api";
-import * as s3 from "./s3";
-import * as cloudwatch from "./cloudwatch";
-import * as sns from "./sns";
-import * as sqs from "./sqs";
-
-export { apigateway, s3, cloudwatch, sns, sqs };
+export * from "./topic";

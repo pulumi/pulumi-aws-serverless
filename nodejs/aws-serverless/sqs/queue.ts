@@ -64,7 +64,7 @@ export function onEvent(
     args?: QueueEventSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription {
 
     args = args || {};
-    const func = createLambdaFunction(name + "-queue-subscription", handler, opts, {
+    const func = createLambdaFunction(name + "-queue-event", handler, opts, {
         policies: [aws.iam.AWSLambdaFullAccess, iam.AmazonSQSFullAccess],
     });
     return new QueueEventSubscription(name, queue, func, args, opts);
@@ -98,7 +98,6 @@ export class QueueEventSubscription extends EventSubscription {
         }, { parent: this });
     }
 }
-
 
 // Monkey-patch Queue to expose the members directly on it.
 

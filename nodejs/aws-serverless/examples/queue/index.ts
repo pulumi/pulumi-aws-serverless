@@ -26,9 +26,15 @@ const bucket = new aws.s3.Bucket("testbucket", {
     forceDestroy: true,
 });
 
-const sqsQueue = new aws.sqs.Queue("queue", {
+let queueIndex = 0;
+const sqsQueue = new aws.sqs.Queue("queue1" + queueIndex++, {
     visibilityTimeoutSeconds: 300,
 });
+const sqsQueue1 = new aws.sqs.Queue("queue1" + queueIndex++, {
+    visibilityTimeoutSeconds: 300,
+});
+
+const c = new Promise(resolve => setTimeout(resolve, 100000));
 
 serverless.queue.subscribe("subscription", sqsQueue, async (event) => {
     const awssdk = await import("aws-sdk");

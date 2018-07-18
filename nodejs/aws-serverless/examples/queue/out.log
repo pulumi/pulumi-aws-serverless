@@ -1,0 +1,80 @@
+[38;5;13mPreviewing update of stack 'cysqstest'[0m
+[38;5;8mPreviewing changes:[0m
+
+ [38;5;2m+ [0m aws:sqs:Queue queue10 [38;5;2mcreate[0m[38;5;2m[0m 
+ [38;5;8m* [0m aws:serverless:Function subscription-queue-subscription [38;5;8mno change[0m 
+ [38;5;8m* [0m pulumi:pulumi:Stack queue-cysqstest running[38;5;8m[0m 
+ [38;5;8m* [0m aws:iam:Role subscription-queue-subscription [38;5;8mno change[0m 
+ [38;5;2m+ [0m aws:sqs:Queue queue11 [38;5;2mcreate[0m[38;5;2m[0m 
+ [38;5;11m~ [0m aws-serverless:queue:QueueEventSubscription subscription [38;5;11mupdate[0m[38;5;11m[0m changes: [38;5;11m~ queue[0m[0m
+ [38;5;8m* [0m aws:s3:Bucket testbucket [38;5;8mno change[0m 
+ [38;5;8m* [0m aws:iam:RolePolicyAttachment subscription-queue-subscription-32be53a2 [38;5;8mno change[0m 
+ [38;5;8m* [0m aws:iam:RolePolicyAttachment subscription-queue-subscription-7cd09230 [38;5;8mno change[0m 
+ [38;5;8m* [0m aws:lambda:Function subscription-queue-subscription [38;5;8mno change[0m 
+ [38;5;10m++[0m aws:lambda:Permission subscription [38;5;10mcreate for replacement[0m[38;5;10m[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;3m+-[0m aws:lambda:Permission subscription [38;5;3mreplace[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;10m++[0m aws:lambda:EventSourceMapping subscription [38;5;10mcreate for replacement[0m[38;5;10m[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;3m+-[0m aws:lambda:EventSourceMapping subscription [38;5;3mreplace[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+@ Previewing update of........
+ [38;5;3m+-[0m aws:lambda:EventSourceMapping subscription [38;5;3mreplace[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;3m+-[0m aws:lambda:Permission subscription [38;5;3mreplace[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;1m- [0m aws:sqs:Queue queue1 [38;5;1mdelete[0m[38;5;1m..[0m 
+ [38;5;1m- [0m aws:sqs:Queue queue0 [38;5;1mdelete[0m[38;5;1m..[0m 
+ [38;5;8m* [0m pulumi:pulumi:Stack queue-cysqstest [38;5;8mno change[0m 
+ 
+[38;5;5minfo[0m: 7 changes previewed:
+    [38;5;2m+ 2 resources to create[0m
+    [38;5;11m~ 1 resource to update[0m
+    [38;5;1m- 2 resources to delete[0m
+    [38;5;3m+-2 resources to replace[0m
+      7 resources unchanged
+
+[38;5;13mUpdating stack 'cysqstest'[0m
+[38;5;8mPerforming changes:[0m
+
+ [38;5;2m+ [0m aws:sqs:Queue queue10 [38;5;2mcreating[0m[38;5;2m[0m 
+ [38;5;2m+ [0m aws:sqs:Queue queue10 [38;5;2mcreated[0m 
+ [38;5;8m* [0m aws:serverless:Function subscription-queue-subscription [38;5;8munchanged[0m 
+ [38;5;8m* [0m pulumi:pulumi:Stack queue-cysqstest running[38;5;8m[0m 
+ [38;5;2m+ [0m aws:sqs:Queue queue11 [38;5;2mcreating[0m[38;5;2m[0m 
+ [38;5;2m+ [0m aws:sqs:Queue queue11 [38;5;2mcreated[0m 
+ [38;5;11m~ [0m aws-serverless:queue:QueueEventSubscription subscription [38;5;11mupdating[0m[38;5;11m[0m changes: [38;5;11m~ queue[0m[0m
+ [38;5;8m* [0m aws:s3:Bucket testbucket [38;5;8munchanged[0m 
+ [38;5;8m* [0m aws:iam:Role subscription-queue-subscription [38;5;8munchanged[0m 
+ [38;5;8m* [0m aws:iam:RolePolicyAttachment subscription-queue-subscription-32be53a2 [38;5;8munchanged[0m 
+ [38;5;8m* [0m aws:iam:RolePolicyAttachment subscription-queue-subscription-7cd09230 [38;5;8munchanged[0m 
+ [38;5;8m* [0m aws:lambda:Function subscription-queue-subscription [38;5;8munchanged[0m 
+ [38;5;10m++[0m aws:lambda:Permission subscription [38;5;10mcreating for replacement[0m[38;5;10m[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;10m++[0m aws:lambda:Permission subscription [38;5;10mcreated for replacement[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;3m+-[0m aws:lambda:Permission subscription [38;5;3mreplaced[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;3m+-[0m aws:lambda:Permission subscription [38;5;3mreplaced[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;10m++[0m aws:lambda:EventSourceMapping subscription [38;5;10mcreating for replacement[0m[38;5;10m[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;10m++[0m aws:lambda:EventSourceMapping subscription [38;5;10mcreated for replacement[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;3m+-[0m aws:lambda:EventSourceMapping subscription [38;5;3mreplaced[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;3m+-[0m aws:lambda:EventSourceMapping subscription [38;5;3mreplaced[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+@ Updating........
+ [38;5;3m+-[0m aws:lambda:EventSourceMapping subscription [38;5;3mreplaced[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;3m+-[0m aws:lambda:EventSourceMapping subscription [38;5;3mreplaced[0m changes: [38;5;11m~ eventSourceArn[0m[0m
+ [38;5;3m+-[0m aws:lambda:Permission subscription [38;5;3mreplaced[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;3m+-[0m aws:lambda:Permission subscription [38;5;3mreplaced[0m changes: [38;5;11m~ sourceArn,statementId[0m[0m
+ [38;5;1m- [0m aws:sqs:Queue queue1 [38;5;1mdeleting[0m[38;5;1m..[0m 
+ [38;5;1m- [0m aws:sqs:Queue queue1 [38;5;1mdeleted[0m 
+ [38;5;1m- [0m aws:sqs:Queue queue0 [38;5;1mdeleting[0m[38;5;1m..[0m 
+ [38;5;1m- [0m aws:sqs:Queue queue0 [38;5;1mdeleted[0m 
+ [38;5;8m* [0m pulumi:pulumi:Stack queue-cysqstest done 
+ [38;5;8m* [0m aws:serverless:Function subscription-queue-subscription [38;5;8munchanged[0m 
+ [38;5;11m~ [0m aws-serverless:queue:QueueEventSubscription subscription [38;5;11mupdated[0m changes: [38;5;11m~ queue[0m[0m
+ 
+[38;5;8m---outputs:---
+[0m[38;5;8mbucketUrl: [0m[38;5;8m"s3://testbucket-caad4fb"[0m[38;5;8m
+[0m[38;5;8mqueueUrl : [0m[38;5;8m"https://sqs.us-east-2.amazonaws.com/153052954103/queue10-1f8627a"[0m[38;5;8m
+[0m
+[38;5;5minfo[0m: 7 changes performed:
+    [38;5;2m+ 2 resources created[0m
+    [38;5;11m~ 1 resource updated[0m
+    [38;5;1m- 2 resources deleted[0m
+    [38;5;3m+-2 resources replaced[0m
+      7 resources unchanged
+[38;5;8mUpdate duration: 1m47.677901764s[0m
+
+[38;5;13mPermalink: https://app.pulumi.com/CyrusNajmabadi/cysqstest/updates/20[0m

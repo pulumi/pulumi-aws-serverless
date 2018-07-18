@@ -70,6 +70,8 @@ export function onEvent(
 }
 
 export class TopicEventSubscription extends EventSubscription {
+    public readonly topic: pulumi.Output<sns.Topic>;
+
     /**
      * The underlying sns object created for the subscription.
      */

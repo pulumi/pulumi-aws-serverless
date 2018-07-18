@@ -172,6 +172,8 @@ let bucketSubscriptionInfos = new Map<Bucket, SubscriptionInfo[]>();
  * completion and all subscriptions have been heard about.
  */
 export class BucketEventSubscription extends EventSubscription {
+    public readonly bucket: pulumi.Output<Bucket>;
+
     public constructor(
         name: string, bucket: Bucket, func: lambda.Function,
         args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {

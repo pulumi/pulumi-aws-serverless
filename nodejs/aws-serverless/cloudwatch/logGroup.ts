@@ -70,6 +70,8 @@ export function onEvent(name: string, logGroup: cloudwatch.LogGroup, handler: Lo
 }
 
 export class LogGroupEventSubscription extends EventSubscription {
+    public readonly logGroup: pulumi.Output<cloudwatch.LogGroup>;
+    
     constructor(
         name: string, logGroup: cloudwatch.LogGroup, func: lambda.Function,
         args: LogGroupEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
@@ -91,5 +93,3 @@ export class LogGroupEventSubscription extends EventSubscription {
 // aws.cloudwatch.LogGroup.prototype.onEvent = function (this: cloudwatch.LogGroup, name, handler, args, opts) {
 //     return onEvent(name, this, handler, args, opts);
 // };
-
-

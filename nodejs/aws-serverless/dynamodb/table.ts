@@ -67,11 +67,13 @@ export function onEvent(name: string, table: dynamodb.Table, handler: TableEvent
 }
 
 export class TableEventSubscription extends EventSubscription {
+    public readonly table: pulumi.Output<dynamodb.Table>;
+
     constructor(
         name: string, table: dynamodb.Table, func: lambda.Function,
         args: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
-        super("aws-serverless:cloudwatch:LogGroupEventSubscription", name, func, { table: table }, opts);
+        super("aws-serverless:dynamodb:TableEventSubscription", name, func, { table: table }, opts);
         throw new RunError("NYI");
     }
 }

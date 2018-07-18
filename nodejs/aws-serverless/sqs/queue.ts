@@ -71,6 +71,8 @@ export function onEvent(
 }
 
 export class QueueEventSubscription extends EventSubscription {
+    public readonly queue: pulumi.Output<sqs.Queue>;
+
     /**
      * The underlying sns object created for the subscription.
      */

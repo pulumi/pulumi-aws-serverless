@@ -39,42 +39,28 @@ export interface EventRuleEvent {
 export type EventRuleEventHandler = Handler<EventRuleEvent, void>;
 
 export function onSchedule(name: string, schedule: string, handler: EventRuleEventHandler, args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription {
-    return onEventOrSchedule(name, schedule, handler, args, opts);
+    const eventRule = new cloudwatch.EventRule(name, { scheduleExpression: schedule }, opts);
+    return onEvent(name, eventRule, handler, args, opts);
 }
 
-export function onEvent(name: string, rule: cloudwatch.EventRule, handler: EventRuleEventHandler, args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription {
-    return onEventOrSchedule(name, rule, handler, args, opts);
-}
-
-function onEventOrSchedule(
-    name: string, scheduleOrRule: string | cloudwatch.EventRule, handler: EventRuleEventHandler,
-    args: EventRuleEventSubscriptionArgs | undefined, opts: pulumi.ResourceOptions | undefined): EventRuleEventSubscription {
-
+export function onEvent(name: string, eventRule: cloudwatch.EventRule, handler: EventRuleEventHandler, args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription {
     args = args || {};
     const func = createLambdaFunction(name + "-cloudwatch-event", handler, opts);
-    return new EventRuleEventSubscription(name, scheduleOrRule, func, args, opts);
+    return new EventRuleEventSubscription(name, eventRule, func, args, opts);
 }
 
 export class EventRuleEventSubscription extends EventSubscription {
-    public readonly eventRule: cloudwatch.EventRule;
+    public readonly eventRule: pulumi.Output<cloudwatch.EventRule>;
     public readonly target: cloudwatch.EventTarget;
 
     public constructor(
-        name: string, scheduleOrRule: string | cloudwatch.EventRule, func: lambda.Function,
+        name: string, eventRule: cloudwatch.EventRule, func: lambda.Function,
         args: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
-        super("aws-serverless:cloudwatch:EventRuleEventSubscription", name, func, { }, opts);
-
-        if (typeof scheduleOrRule === "string") {
-            this.eventRule = new cloudwatch.EventRule(name, {
-                scheduleExpression: scheduleOrRule,
-            }, { parent: this });
-        } else {
-            this.eventRule = scheduleOrRule;
-        }
+        super("aws-serverless:cloudwatch:EventRuleEventSubscription", name, func, { eventRule: eventRule }, opts);
 
         this.target = new aws.cloudwatch.EventTarget(name, {
-            rule: this.eventRule.name,
+            rule: eventRule.name,
             arn: this.func.arn,
             targetId: name,
         }, { parent: this });
@@ -83,7 +69,7 @@ export class EventRuleEventSubscription extends EventSubscription {
             action: "lambda:invokeFunction",
             function: this.func,
             principal: "events.amazonaws.com",
-            sourceArn: this.eventRule.arn,
+            sourceArn: eventRule.arn,
         }, { parent: this });
     }
 }

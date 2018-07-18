@@ -159,7 +159,11 @@ export class API extends pulumi.ComponentResource {
                             action: "lambda:invokeFunction",
                             function: lambda,
                             principal: "apigateway.amazonaws.com",
-                            sourceArn: this.deployment.executionArn.apply(arn => arn + stageName + "/" + method + path),
+                            // We give permission for this function to be invoked by any stage at the given method and
+                            // path on the API. We allow any stage instead of encoding the one known stage that will be
+                            // deployed by Pulumi because the API Gateway console "Test" feature invokes the route
+                            // handler with the fake stage `test-invoke-stage`.
+                            sourceArn: this.deployment.executionArn.apply(arn => arn + "*/" + method + path),
                         }, { parent: this });
                         permissions.push(invokePermission);
                     }

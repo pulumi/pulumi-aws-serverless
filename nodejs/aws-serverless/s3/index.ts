@@ -12,4 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export * from "./bucket";
+import * as bucket from "./bucket";
+
+export { bucket };

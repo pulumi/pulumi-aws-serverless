@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import * as apigateway from "./api";
-import * as s3 from "./s3";
 import * as cloudwatch from "./cloudwatch";
+import * as s3 from "./s3";
 import * as sns from "./sns";
 import * as sqs from "./sqs";
 
-export { apigateway, s3, cloudwatch, sns, sqs };
+export { apigateway, cloudwatch, s3, sns, sqs };

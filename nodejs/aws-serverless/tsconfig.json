@@ -15,11 +15,9 @@
         "strictNullChecks": true
     },
     "files": [
-        "bucket.ts",
-        "function.ts",
         "index.ts",
-        "topic.ts",
-        "utils.ts",
+        "s3/index.ts",
+        "s3/bucket.ts"
     ]
 }
 

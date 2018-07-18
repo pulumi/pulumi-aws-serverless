@@ -13,9 +13,7 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import * as serverless from "@pulumi/aws-serverless";
-import * as pulumi from "@pulumi/pulumi";
-import { Output } from "@pulumi/pulumi";
+import * as s3 from "@pulumi/aws-serverless/s3";
 
 const bucket = new aws.s3.Bucket("testbucket", {
     serverSideEncryptionConfiguration: {
@@ -28,7 +26,7 @@ const bucket = new aws.s3.Bucket("testbucket", {
     forceDestroy: true,
 });
 
-serverless.bucket.onPut("test", bucket, async (event) => {
+s3.bucket.onObjectCreated("test", bucket, async (event) => {
     const awssdk = await import("aws-sdk");
     const s3 = new awssdk.S3();
 

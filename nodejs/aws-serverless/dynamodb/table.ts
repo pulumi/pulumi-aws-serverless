@@ -57,7 +57,7 @@ export interface TableEventRecord {
     userIdentity: {
        PrincipalId: string;
        Type: string;
-    }
+    };
  }
 
 export type TableEventHandler = Handler<TableEvent, void>;
@@ -78,13 +78,13 @@ export class TableEventSubscription extends EventSubscription {
 
 // Monkey-patch LogGroup to expose the members directly on it.
 
-declare module "@pulumi/aws/dynamodb/table" {
-    export interface Table {
-        onEvent(name: string, handler: TableEventHandler,
-                args?: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TableEventSubscription;
-    }
-}
+// declare module "@pulumi/aws/dynamodb/table" {
+//     export interface Table {
+//         onEvent(name: string, handler: TableEventHandler,
+//                 args?: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TableEventSubscription;
+//     }
+// }
 
-aws.dynamodb.Table.prototype.onEvent = function (this: dynamodb.Table, name, handler, args, opts) {
-    return onEvent(name, this, handler, args, opts);
-};
+// aws.dynamodb.Table.prototype.onEvent = function (this: dynamodb.Table, name, handler, args, opts) {
+//     return onEvent(name, this, handler, args, opts);
+// };

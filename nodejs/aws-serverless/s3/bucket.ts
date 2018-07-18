@@ -14,6 +14,7 @@
 
 import * as aws from "@pulumi/aws";
 import { lambda, s3 } from "@pulumi/aws";
+import { Bucket } from "@pulumi/aws/s3";
 import * as pulumi from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
@@ -103,7 +104,7 @@ export interface BucketRecord {
 export type BucketEventHandler = Handler<BucketEvent, void>;
 
 export function onObjectCreated(
-    name: string, bucket: s3.Bucket, handler: BucketEventHandler,
+    name: string, bucket: Bucket, handler: BucketEventHandler,
     args?: ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     args = args || {};
@@ -119,7 +120,7 @@ export function onObjectCreated(
 }
 
 export function onObjectRemoved(
-    name: string, bucket: s3.Bucket, handler: BucketEventHandler,
+    name: string, bucket: Bucket, handler: BucketEventHandler,
     args?: ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     args = args || {};
@@ -146,7 +147,7 @@ const defaultComputePolicies = [
  * sufficient.
  */
 export function onEvent(
-    name: string, bucket: s3.Bucket, handler: BucketEventHandler,
+    name: string, bucket: Bucket, handler: BucketEventHandler,
     args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription {
 
     const func = createLambdaFunction(name + "-bucket-event", handler, opts);
@@ -162,7 +163,7 @@ interface SubscriptionInfo {
     permission: aws.lambda.Permission;
 }
 
-let bucketSubscriptionInfos = new Map<s3.Bucket, SubscriptionInfo[]>();
+let bucketSubscriptionInfos = new Map<Bucket, SubscriptionInfo[]>();
 
 /**
  * A component corresponding to a single underlying aws.s3.BucketNotification created for a bucket.
@@ -172,7 +173,7 @@ let bucketSubscriptionInfos = new Map<s3.Bucket, SubscriptionInfo[]>();
  */
 export class BucketEventSubscription extends EventSubscription {
     public constructor(
-        name: string, bucket: s3.Bucket, func: lambda.Function,
+        name: string, bucket: Bucket, func: lambda.Function,
         args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {
 
         super("aws-serverless:bucket:BucketEventSubscription", name, func, { bucket: bucket }, opts);
@@ -231,25 +232,25 @@ process.on("beforeExit", () => {
 
 // Monkey-patch Bucket to expose the members directly on it.
 
-declare module "@pulumi/aws/s3/bucket" {
-    export interface Bucket {
-        onObjectCreated(name: string, handler: BucketEventHandler,
-                        args?: ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
-        onObjectRemoved(name: string, handler: BucketEventHandler,
-                        args?: ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
-        onEvent(name: string, handler: BucketEventHandler,
-                args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
-    }
-}
+// declare module "@pulumi/aws/s3/bucket" {
+//     export interface Bucket {
+//         onObjectCreated(name: string, handler: BucketEventHandler,
+//                         args?: ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
+//         onObjectRemoved(name: string, handler: BucketEventHandler,
+//                         args?: ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
+//         onEvent(name: string, handler: BucketEventHandler,
+//                 args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
+//     }
+// }
 
-aws.s3.Bucket.prototype.onObjectCreated = function (this: s3.Bucket, name, handler, args, opts) {
-    return onObjectCreated(name, this, handler, args, opts);
-};
+// aws.s3.Bucket.prototype.onObjectCreated = function (this: Bucket, name, handler, args, opts) {
+//     return onObjectCreated(name, this, handler, args, opts);
+// };
 
-aws.s3.Bucket.prototype.onObjectRemoved = function (this: s3.Bucket, name, handler, args, opts) {
-    return onObjectRemoved(name, this, handler, args, opts);
-};
+// Bucket.prototype.onObjectRemoved = function (this: Bucket, name, handler, args, opts) {
+//     return onObjectRemoved(name, this, handler, args, opts);
+// };
 
-aws.s3.Bucket.prototype.onEvent = function (this: s3.Bucket, name, handler, args, opts) {
-    return onEvent(name, this, handler, args, opts);
-};
+// Bucket.prototype.onEvent = function (this: Bucket, name, handler, args, opts) {
+//     return onEvent(name, this, handler, args, opts);
+// };

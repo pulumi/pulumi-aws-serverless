@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import * as serverless from "@pulumi/aws-serverless";
+import * as sqs from "@pulumi/aws-serverless/sqs";
 
 const bucket = new aws.s3.Bucket("testbucket", {
     serverSideEncryptionConfiguration: {
@@ -26,17 +26,13 @@ const bucket = new aws.s3.Bucket("testbucket", {
     forceDestroy: true,
 });
 
-let queueIndex = 0;
-const sqsQueue = new aws.sqs.Queue("queue1" + queueIndex++, {
-    visibilityTimeoutSeconds: 300,
-});
-const sqsQueue1 = new aws.sqs.Queue("queue1" + queueIndex++, {
+const sqsQueue = new aws.sqs.Queue("queue", {
     visibilityTimeoutSeconds: 300,
 });
 
 const c = new Promise(resolve => setTimeout(resolve, 100000));
 
-serverless.queue.subscribe("subscription", sqsQueue, async (event) => {
+sqs.queue.onEvent("subscription", sqsQueue, async (event) => {
     const awssdk = await import("aws-sdk");
     const s3 = new awssdk.S3();
 

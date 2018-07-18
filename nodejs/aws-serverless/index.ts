@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as pulumi from "@pulumi/pulumi";
+
 import * as apigateway from "./api";
 import * as cloudwatch from "./cloudwatch";
 import * as dynamodb from "./dynamodb";
@@ -19,4 +21,15 @@ import * as s3 from "./s3";
 import * as sns from "./sns";
 import * as sqs from "./sqs";
 
-export { apigateway, cloudwatch, dynamodb, s3, sns, sqs, };
+export { apigateway, cloudwatch, dynamodb, s3, sns, sqs };
+
+// declare module "@pulumi/aws/s3/bucket" {
+//     export interface Bucket {
+//         onObjectCreated(name: string, handler: s3.bucket.BucketEventHandler,
+//                         args?: s3.bucket.ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): s3.bucket.BucketEventSubscription;
+//         onObjectRemoved(name: string, handler: s3.bucket.BucketEventHandler,
+//                         args?: s3.bucket.ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): s3.bucket.BucketEventSubscription;
+//         onEvent(name: string, handler: s3.bucket.BucketEventHandler,
+//                 args: s3.bucket.BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): s3.bucket.BucketEventSubscription;
+//     }
+// }

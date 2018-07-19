@@ -37,77 +37,128 @@ export type DistributionCacheBehavior = Omit<CloudFrontDistributionCacheBehavior
 };
 
 interface ViewerOrOriginRequestEvent {
-    /*
-    {
-  "Records": [
-    {
-      "cf": {
-        "config": {
-          "distributionDomainName": "d123.cloudfront.net",
-          "distributionId": "EDFDVBD6EXAMPLE",
-          "eventType": "viewer-request",
-          "requestId": "MRVMF7KydIvxMWfJIglgwHQwZsbG2IhRJ07sn9AkKUFSHS9EXAMPLE=="
+    Records: ViewerOrOriginRequestEventRecord[];
+}
+
+interface ViewerOrOriginRequestEventRecord {
+    cf: {
+        config: {
+            // The domain name of the distribution that's associated with the request.
+            distributionDomainName: string;
+            // The ID of the distribution that's associated with the request.
+            distributionId: string;
+            eventType: "viewer-request" | "origin-request",
+            // An encrypted string that uniquely identifies a request. The requestId value also
+            // appears in CloudFront access logs as x-edge-request-id.
+            requestId: string;
         },
-        "request": {
-          "clientIp": "2001:0db8:85a3:0:0:8a2e:0370:7334",
-          "querystring": "size=large",
-          "uri": "/picture.jpg",
-          "method": "GET",
-          "headers": {
-            "host": [
-              {
-                "key": "Host",
-                "value": "d111111abcdef8.cloudfront.net"
-              }
-            ],
-            "user-agent": [
-              {
-                "key": "User-Agent",
-                "value": "curl/7.51.0"
-              }
-            ]
-          },
-          "origin": {
-            "custom": {
-              "customHeaders": {
-                "my-origin-custom-header": [
-                  {
-                    "key": "My-Origin-Custom-Header",
-                    "value": "Test"
-                  }
-                ]
-              },
-              "domainName": "example.com",
-              "keepaliveTimeout": 5,
-              "path": "/custom_path",
-              "port": 443,
-              "protocol": "https",
-              "readTimeout": 5,
-              "sslProtocols": [
-                "TLSv1",
-                "TLSv1.1"
-              ]
-            },
-            "s3": {
-              "authMethod": "origin-access-identity",
-              "customHeaders": {
-                "my-origin-custom-header": [
-                  {
-                    "key": "My-Origin-Custom-Header",
-                    "value": "Test"
-                  }
-                ]
-              },
-              "domainName": "my-bucket.s3.amazonaws.com",
-              "path": "/s3_path",
-              "region": "us-east-1"
+        request: {
+            // The IP address of the viewer that made the request. If the viewer used an HTTP proxy
+            // or a load balancer to send the request, the value is the IP address of the proxy or
+            // load balancer.
+            clientIp: string;
+
+            // The query string, if any, that CloudFront received in the viewer request. If the viewer
+            // request doesn't include a query string, the event structure still includes querystring
+            // with an empty value.
+            querystring: string;
+
+            // The relative path of the requested object. Note the following:
+            //
+            // The new relative path must begin with a slash (like this: /).
+            //
+            // If a function changes the URI for a request, that changes the object that the viewer is
+            // requesting.
+            //
+            // If a function changes the URI for a request, that doesn't change the cache behavior for
+            // the request or the origin that the request is forwarded to.
+            uri: string;
+
+            // The HTTP method of the viewer request.
+            method: string;
+
+            headers: Record<string, { key: string, value: string }[]>;
+
+            // You can specify either a custom origin or an Amazon S3 origin in a single request;
+            // not both.
+            origin: {
+                custom?: {
+                    // You can include custom headers with the request by specifying a header name
+                    // and value pair for each custom header. You can't add headers that are
+                    // blacklisted for origin custom headers or hooks, and a header with the same
+                    // name can't be present in request.headers or in
+                    // request.origin.custom.customHeaders. The restrictions for request.headers
+                    // also apply to custom headers.
+                    customHeaders: Record<string, { key: string, value: string }[]>;
+
+                    // The domain name of the origin server, like www.example.com. The domain name
+                    // can't be empty, can't include a colon (:), and can't use the IPV4 address
+                    // format. The domain name can be up to 253 characters.
+                    domainName: string;
+
+                    // How long, in seconds, that CloudFront should try to maintain the connection
+                    // to your origin after receiving the last packet of a response. The value must
+                    // be a number in the range of 1 to 60 seconds.
+                    keepaliveTimeout: number;
+
+                    // The directory path at the server where the request should locate content. The
+                    // path should start with a slash (/) but should have no trailing / (like
+                    // path/). The path should be URL encoded, with a maximum length of 255
+                    // characters.
+                    path: string;
+
+                    // The port at your custom origin. The port must be 80 or 443, or a number in
+                    // the range of 1024 to 65535.
+                    port: 443;
+
+                    // The origin protocol policy that CloudFront should use when fetching objects
+                    // from your origin. The value can be http or https.
+                    protocol: "http" | "https";
+
+                    // How long, in seconds, CloudFront should wait for a response after forwarding
+                    // a request to the origin, and how long CloudFront should wait after receiving
+                    // a packet of a response before receiving the next packet. The value must be a
+                    // number in the range of 4 to 60 seconds.
+                    readTimeout: number;
+
+                    // The SSL protocols that CloudFront can use when establishing an HTTPS
+                    // connection with your origin. Values can be the following: TLSv1.2, TLSv1.1,
+                    // TLSv1, SSLv3
+                    sslProtocols: ("TLSv1.2" | "TLSv1.1" | "TLSv1" | "SSLv3")[];
+                },
+
+                s3?: {
+                    // Set to origin-access-identity if your Amazon S3 bucket has an origin access
+                    // identity (OAI) set up, or none if you aren’t using OAI. If you set authMethod
+                    // to origin-access-identity, there are several requirements:
+                    authMethod: string;
+
+                    // You can include custom headers with the request by specifying a header name
+                    // and value pair for each custom header. You can't add headers that are
+                    // blacklisted for origin custom headers or hooks, and a header with the same
+                    // name can't be present in request.headers or in
+                    // request.origin.custom.customHeaders. The restrictions for request.headers
+                    // also apply to custom headers.
+                    customHeaders: Record<string, { key: string, value: string }[]>;
+
+                    // The domain name of the Amazon S3 origin server, like
+                    // my-bucket.s3.amazonaws.com. The domain name can't be empty, and must be an
+                    // allowed bucket name (as defined by Amazon S3). Do not use a region-specific
+                    // endpoint, like my-bucket.s3-eu-west-1.amazonaws.com. The name can be up to
+                    // 128 characters, and must be all lowercase.
+                    domainName: string;
+
+                    // The directory path at the server where the request should locate content. The
+                    // path should start with a slash (/) but should have no trailing / (like
+                    // path/).
+                    path: string;
+
+                    // The region for your Amazon S3 bucket. This is required only if you use OAI.
+                    region: string;
+                };
             }
-          }
-        }
-      }
-    }
-  ]
-}*/
+        };
+    };
 }
 
 interface ViewerOrOriginResponseEvent {

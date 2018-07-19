@@ -71,7 +71,7 @@ export function onEvent(name: string, logGroup: cloudwatch.LogGroup, handler: Lo
 
 export class LogGroupEventSubscription extends EventSubscription {
     public readonly logGroup: pulumi.Output<cloudwatch.LogGroup>;
-    
+
     constructor(
         name: string, logGroup: cloudwatch.LogGroup, func: lambda.Function,
         args: LogGroupEventSubscriptionArgs, opts?: pulumi.ResourceOptions) {

@@ -39,3 +39,5 @@ export function outputFromObject<T, U>(
         func: (t: T) => pulumi.Output<U>): pulumi.Output<Record<string, U>> {
     return pulumi.all(mapObject(obj, func));
 }
+
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

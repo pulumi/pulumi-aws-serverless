@@ -77,7 +77,7 @@ interface ViewerOrOriginRequestEventRecord {
             // The HTTP method of the viewer request.
             method: string;
 
-            headers: Record<string, { key: string, value: string }[]>;
+            headers: Headers;
 
             // You can specify either a custom origin or an Amazon S3 origin in a single request;
             // not both.
@@ -89,7 +89,7 @@ interface ViewerOrOriginRequestEventRecord {
                     // name can't be present in request.headers or in
                     // request.origin.custom.customHeaders. The restrictions for request.headers
                     // also apply to custom headers.
-                    customHeaders: Record<string, { key: string, value: string }[]>;
+                    customHeaders: Headers;
 
                     // The domain name of the origin server, like www.example.com. The domain name
                     // can't be empty, can't include a colon (:), and can't use the IPV4 address
@@ -139,7 +139,7 @@ interface ViewerOrOriginRequestEventRecord {
                     // name can't be present in request.headers or in
                     // request.origin.custom.customHeaders. The restrictions for request.headers
                     // also apply to custom headers.
-                    customHeaders: Record<string, { key: string, value: string }[]>;
+                    customHeaders: Headers;
 
                     // The domain name of the Amazon S3 origin server, like
                     // my-bucket.s3.amazonaws.com. The domain name can't be empty, and must be an
@@ -162,67 +162,66 @@ interface ViewerOrOriginRequestEventRecord {
 }
 
 interface ViewerOrOriginResponseEvent {
-    /*
-    {
-    "Records": [
-        {
-            "cf": {
-                "config": {
-                    "distributionDomainName": "d123.cloudfront.net",
-                    "distributionId": "EDFDVBD6EXAMPLE",
-                    "eventType": "viewer-response",
-                    "requestId": "xGN7KWpVEmB9Dp7ctcVFQC4E-nrcOcEKS3QyAez--06dV7TEXAMPLE=="
-                },
-                "request": {
-                    "clientIp": "2001:0db8:85a3:0:0:8a2e:0370:7334",
-                    "method": "GET",
-                    "uri": "/picture.jpg",
-                    "querystring": "size=large",
-                    "headers": {
-                        "host": [
-                            {
-                                "key": "Host",
-                                "value": "d111111abcdef8.cloudfront.net"
-                            }
-                        ],
-                        "user-agent": [
-                            {
-                                "key": "User-Agent",
-                                "value": "curl/7.18.1"
-                            }
-                        ]
-                    }
-                },
-                "response": {
-                    "status": "200",
-                    "statusDescription": "OK",
-                    "headers": {
-                        "server": [
-                            {
-                                "key": "Server",
-                                "value": "MyCustomOrigin"
-                            }
-                        ],
-                        "set-cookie": [
-                            {
-                                "key": "Set-Cookie",
-                                "value": "theme=light"
-                            },
-                            {
-                                "key": "Set-Cookie",
-                                "value": "sessionToken=abc123; Expires=Wed, 09 Jun 2021 10:18:14 GMT"
-                            }
-                        ]
-                    }
-                }
-            }
-        }
-    ]
-}
-    */
+    Records: ViewerOrOriginResponseEventRecord[];
 }
 
-interface Result {
+interface ViewerOrOriginResponseEventRecord {
+    cf: {
+        config: {
+            // The domain name of the distribution that's associated with the request.
+            distributionDomainName: string;
+            // The ID of the distribution that's associated with the request.
+            distributionId: string;
+            eventType: "viewer-response" | "origin-response",
+
+            // An encrypted string that uniquely identifies a request. The requestId value also
+            // appears in CloudFront access logs as the x-edge-request-id. For more information, see
+            // Configuring and Using Access Logs and Web Distribution Log File Format.
+            requestId: string;
+        };
+        request: {
+            // The IP address of the viewer that made the request. If the viewer used an HTTP proxy
+            // or a load balancer to send the request, the value is the IP address of the proxy or
+            // load balancer.
+            clientIp: string;
+
+            // The query string, if any, that CloudFront received in the viewer request. If the viewer
+            // request doesn't include a query string, the event structure still includes querystring
+            // with an empty value.
+            querystring: string;
+
+            // The relative path of the requested object. Note the following:
+            //
+            // The new relative path must begin with a slash (like this: /).
+            //
+            // If a function changes the URI for a request, that changes the object that the viewer is
+            // requesting.
+            //
+            // If a function changes the URI for a request, that doesn't change the cache behavior for
+            // the request or the origin that the request is forwarded to.
+            uri: string;
+
+            // The HTTP method of the viewer request.
+            method: string;
+
+            headers: Headers;
+        },
+        response: {
+            // The HTTP status code that CloudFront returns to the viewer.
+            status: string;
+
+            // The HTTP status description that CloudFront returns to the viewer.
+            statusDescription: string;
+
+            // Headers that you want CloudFront to return in the generated response.
+            headers: Headers;
+        }
+    };
+}
+
+export type Headers = Record<string, { key: string, value: string }[]>;
+
+export interface Result {
     // The body, if any, that you want CloudFront to return in the generated response.
     body?: string;
 
@@ -248,7 +247,7 @@ interface Result {
     // accept or host.
     //
     // 'value' is a header value.
-    headers?: Record<string, { key: string, value: string }[]>;
+    headers?: Headers;
 
     // The HTTP status code that you want CloudFront to use for the following:
     //

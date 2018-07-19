@@ -14,7 +14,6 @@
 
 import * as aws from "@pulumi/aws";
 import * as sns from "@pulumi/aws-serverless/sns";
-import * as nodeFetchModule from "node-fetch";
 
 const topic = new aws.sns.Topic("sites-to-process-topic", { });
 
@@ -29,9 +28,8 @@ sns.topic.onEvent("for-each-url", topic, async (event) => {
 
         // Fetch the contents at the URL
         console.log(`${url}: Getting`);
-        let res: nodeFetchModule.Response;
         try {
-            res = await fetch(url);
+            const res = await fetch(url);
         } catch (err) {
             console.log(`${url}: Failed to GET`);
             return;

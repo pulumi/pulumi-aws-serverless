@@ -16,17 +16,17 @@ package examples
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/pulumi/pulumi/pkg/testing/integration"
 )
-
-// Fargate is only supported in `us-east-1`, so force Fargate-based tests to run there.
-const fargateRegion = "us-east-1"
 
 func Test_Examples(t *testing.T) {
 	region := os.Getenv("AWS_REGION")
@@ -41,34 +41,59 @@ func Test_Examples(t *testing.T) {
 	}
 	examples := []integration.ProgramTestOptions{
 		{
-			Dir: path.Join(cwd, "./examples/bucket"),
+			Dir: path.Join(cwd, "./bucket"),
 			Config: map[string]string{
-				"aws:region":     region,
-				"cloud:provider": "aws",
+				"aws:region": region,
 			},
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
 		},
 		{
-			Dir: path.Join(cwd, "./examples/cloudwatch"),
+			Dir: path.Join(cwd, "./cloudwatch"),
 			Config: map[string]string{
-				"aws:region":     region,
-				"cloud:provider": "aws",
+				"aws:region": region,
 			},
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
 		},
 		{
-			Dir: path.Join(cwd, "./examples/topic"),
+			Dir: path.Join(cwd, "./topic"),
 			Config: map[string]string{
-				"aws:region":     region,
-				"cloud:provider": "aws",
+				"aws:region": region,
 			},
 			Dependencies: []string{
 				"@pulumi/aws-serverless",
 			},
+		},
+		{
+			Dir: path.Join(cwd, "./queue"),
+			Config: map[string]string{
+				"aws:region": region,
+			},
+			Dependencies: []string{
+				"@pulumi/aws-serverless",
+			},
+		},
+		{
+			Dir: path.Join(cwd, "./api"),
+			Config: map[string]string{
+				"aws:region": region,
+			},
+			Dependencies: []string{
+				"@pulumi/aws-serverless",
+			},
+			ExtraRuntimeValidation: validateAPITest(func(body string) {
+				assert.Equal(t, "Hello, world!", body)
+			}),
+			EditDirs: []integration.EditDir{{
+				Dir:      "./api/step2",
+				Additive: true,
+				ExtraRuntimeValidation: validateAPITest(func(body string) {
+					assert.Equal(t, "<h1>Hello world!</h1>", body)
+				}),
+			}},
 		},
 	}
 	for _, ex := range examples {
@@ -79,5 +104,28 @@ func Test_Examples(t *testing.T) {
 		t.Run(example.Dir, func(t *testing.T) {
 			integration.ProgramTest(t, &example)
 		})
+	}
+}
+
+func validateAPITest(isValid func(body string)) func(t *testing.T, stack integration.RuntimeValidationStackInfo) {
+	return func(t *testing.T, stack integration.RuntimeValidationStackInfo) {
+		var resp *http.Response
+		var err error
+		url := stack.Outputs["url"].(string)
+		// Retry a couple times on 5xx
+		for i := 0; i < 2; i++ {
+			resp, err = http.Get(url + "/b")
+			if !assert.NoError(t, err) {
+				return
+			}
+			if resp.StatusCode < 500 {
+				break
+			}
+			time.Sleep(10 * time.Second)
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		assert.NoError(t, err)
+		isValid(string(body))
 	}
 }

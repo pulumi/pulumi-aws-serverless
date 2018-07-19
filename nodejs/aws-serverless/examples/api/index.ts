@@ -15,7 +15,6 @@
 import * as aws from "@pulumi/aws";
 import * as serverless from "@pulumi/aws-serverless";
 import * as pulumi from "@pulumi/pulumi";
-import { Output } from "@pulumi/pulumi";
 
 const policy: aws.iam.PolicyDocument = {
     "Version": "2012-10-17",
@@ -56,4 +55,4 @@ const api = new serverless.apigateway.API("myapi", {
     ],
 });
 
-export const url: Output<string> = api.url;
+export const url = api.url;

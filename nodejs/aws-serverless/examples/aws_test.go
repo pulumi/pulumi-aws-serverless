@@ -41,7 +41,7 @@ func Test_Examples(t *testing.T) {
 	}
 	examples := []integration.ProgramTestOptions{
 		{
-			Dir: path.Join(cwd, "./bucket"),
+			Dir: path.Join(cwd, "./s3"),
 			Config: map[string]string{
 				"aws:region": region,
 			},
@@ -59,7 +59,7 @@ func Test_Examples(t *testing.T) {
 			},
 		},
 		{
-			Dir: path.Join(cwd, "./topic"),
+			Dir: path.Join(cwd, "./sns"),
 			Config: map[string]string{
 				"aws:region": region,
 			},
@@ -68,7 +68,7 @@ func Test_Examples(t *testing.T) {
 			},
 		},
 		{
-			Dir: path.Join(cwd, "./queue"),
+			Dir: path.Join(cwd, "./sqs"),
 			Config: map[string]string{
 				"aws:region": region,
 			},

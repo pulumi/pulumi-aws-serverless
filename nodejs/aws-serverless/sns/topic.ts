@@ -97,17 +97,3 @@ export class TopicEventSubscription extends EventSubscription {
         }, { parent: this });
     }
 }
-
-// Monkey-patch Topic to expose the members directly on it.
-
-// declare module "@pulumi/aws/sns/topic" {
-//     export interface Topic {
-//         onEvent(name: string, handler: TopicEventHandler,
-//                 args?: TopicEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicEventSubscription;
-//     }
-// }
-
-// aws.sns.Topic.prototype.onEvent = function (this: sns.Topic, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };
-

@@ -231,28 +231,3 @@ process.on("beforeExit", () => {
         }, { parent: bucket, dependsOn: permissions });
     }
 });
-
-// Monkey-patch Bucket to expose the members directly on it.
-
-// declare module "@pulumi/aws/s3/bucket" {
-//     export interface Bucket {
-//         onObjectCreated(name: string, handler: BucketEventHandler,
-//                         args?: ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
-//         onObjectRemoved(name: string, handler: BucketEventHandler,
-//                         args?: ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
-//         onEvent(name: string, handler: BucketEventHandler,
-//                 args: BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): BucketEventSubscription;
-//     }
-// }
-
-// aws.s3.Bucket.prototype.onObjectCreated = function (this: Bucket, name, handler, args, opts) {
-//     return onObjectCreated(name, this, handler, args, opts);
-// };
-
-// Bucket.prototype.onObjectRemoved = function (this: Bucket, name, handler, args, opts) {
-//     return onObjectRemoved(name, this, handler, args, opts);
-// };
-
-// Bucket.prototype.onEvent = function (this: Bucket, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };

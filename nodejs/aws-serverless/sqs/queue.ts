@@ -100,16 +100,3 @@ export class QueueEventSubscription extends EventSubscription {
         }, { parent: this });
     }
 }
-
-// Monkey-patch Queue to expose the members directly on it.
-
-// declare module "@pulumi/aws/sqs/queue" {
-//     export interface Queue {
-//         onEvent(name: string, handler: QueueEventHandler,
-//                 args?: QueueEventSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription;
-//     }
-// }
-
-// aws.sqs.Queue.prototype.onEvent = function (this: sqs.Queue, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };

@@ -98,16 +98,3 @@ export class EventRuleEventSubscription extends EventSubscription {
         }, { parent: this });
     }
 }
-
-// Monkey-patch EventRule to expose the members directly on it.
-
-// declare module "@pulumi/aws/cloudwatch/eventRule" {
-//     export interface EventRule {
-//         onEvent(name: string, handler: EventRuleEventHandler,
-//                 args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription;
-//     }
-// }
-
-// aws.cloudwatch.EventRule.prototype.onEvent = function (this: cloudwatch.EventRule, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };

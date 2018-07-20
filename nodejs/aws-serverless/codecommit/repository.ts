@@ -129,16 +129,3 @@ export class RepositoryEventSubscription extends EventSubscription {
         throw new RunError("NYI");
     }
 }
-
-// Monkey-patch Repository to expose the members directly on it.
-
-// declare module "@pulumi/aws/codecommit/repository" {
-//     export interface Repository {
-//         onEvent(name: string, handler: RepositoryEventHandler,
-//                 args: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription;
-//     }
-// }
-
-// aws.codecommit.Repository.prototype.onEvent = function (this: sqs.Repository, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };

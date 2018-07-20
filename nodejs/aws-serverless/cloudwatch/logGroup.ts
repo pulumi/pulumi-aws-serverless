@@ -99,16 +99,3 @@ export class LogGroupEventSubscription extends EventSubscription {
         throw new RunError("NYI");
     }
 }
-
-// Monkey-patch LogGroup to expose the members directly on it.
-
-// declare module "@pulumi/aws/cloudwatch/logGroup" {
-//     export interface LogGroup {
-//         onEvent(name: string, handler: LogGroupEventHandler,
-//                 args?: LogGroupEventSubscriptionArgs, opts?: pulumi.ResourceOptions): LogGroupEventSubscription;
-//     }
-// }
-
-// aws.cloudwatch.LogGroup.prototype.onEvent = function (this: cloudwatch.LogGroup, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };

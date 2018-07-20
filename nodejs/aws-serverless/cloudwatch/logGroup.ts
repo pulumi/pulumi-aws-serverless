@@ -18,6 +18,7 @@ import * as pulumi from "@pulumi/pulumi";
 import { RunError } from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
+import { LogGroup } from "@pulumi/aws/cloudwatch";
 
 /**
  * Arguments to control the event rule subscription.  Currently empty, but still defined in case of
@@ -31,6 +32,14 @@ export interface LogGroupEventSubscriptionArgs {
 }
 
 export interface LogGroupEvent {
+    awslogs: {
+        // The data attribute in the Lambda record is Base64 encoded and compressed with the gzip
+        // format.
+        data: string;
+    };
+}
+
+export interface DecodedLogGroupEvent {
     // The AWS Account ID of the originating log data.
     owner: string;
 
@@ -59,6 +68,21 @@ export interface LogGroupEventRecord {
 }
 
 export type LogGroupEventHandler = Handler<LogGroupEvent, void>;
+
+export async function decodeLogGroupEvent(event: LogGroupEvent): Promise<DecodedLogGroupEvent> {
+    const zlib = await import("zlib");
+    const payload = new Buffer(event.awslogs.data, "base64");
+
+    return new Promise<DecodedLogGroupEvent>((resolve, reject) => {
+        zlib.gunzip(payload, function(err, result) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(JSON.parse(result.toString("ascii")));
+            }
+        });
+    });
+}
 
 export function onEvent(name: string, logGroup: cloudwatch.LogGroup, handler: LogGroupEventHandler, args?: LogGroupEventSubscriptionArgs, opts?: pulumi.ResourceOptions): LogGroupEventSubscription {
     throw new RunError("NYI");

@@ -64,11 +64,6 @@ export type RepositoryEventHandler = Handler<RepositoryEvent, void>;
  */
 export interface CommonRepositoryEventSubscriptionArgs {
     /**
-     * The name to give to this subscription.
-     */
-    name: string;
-
-    /**
      * Events will be fired for all repository branches and tags by default. For a more specific
      * configuration, choose up to 10 branches. If you subscribe to "onAnyEvent", you cannot choose
      * specific branches.
@@ -88,8 +83,7 @@ export function onAnyEvent(
     args?: CommonRepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
     args = args || <any>{ };
-    const triggerName = args.name || (name + "-on-any-event");
-    return onEvent(name, queue, handler, { name: triggerName, branches: args.branches, events: ["all"] }, opts);
+    return onEvent(name, queue, handler, { branches: args!.branches, events: ["all"] }, opts);
 }
 
 export function onBranchOrTagCreated(
@@ -97,8 +91,7 @@ export function onBranchOrTagCreated(
     args?: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
     args = args || <any>{ };
-    const triggerName = args.name || (name + "-on-branch-or-tag-created");
-    return onEvent(name, queue, handler, { name: triggerName, branches: args.branches, events: ["createReference"] }, opts);
+    return onEvent(name, queue, handler, { branches: args!.branches, events: ["createReference"] }, opts);
 }
 
 export function onBranchOrTagDeleted(
@@ -106,8 +99,7 @@ export function onBranchOrTagDeleted(
     args?: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
     args = args || <any>{ };
-    const triggerName = args.name || (name + "-on-branch-or-tag-deleted");
-    return onEvent(name, queue, handler, { name: triggerName, branches: args.branches, events: ["deleteReference"] }, opts);
+    return onEvent(name, queue, handler, { branches: args!.branches, events: ["deleteReference"] }, opts);
 }
 
 export function onExistingBranchPushed(
@@ -115,9 +107,7 @@ export function onExistingBranchPushed(
     args?: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
     args = args || <any>{ };
-    const triggerName = args.name || (name + "-on-existing-branch-pushed");
-
-    return onEvent(name, queue, handler, { name: triggerName, branches: args.branches, events: ["updateReference"] }, opts);
+    return onEvent(name, queue, handler, { branches: args!.branches, events: ["updateReference"] }, opts);
 }
 
 export function onEvent(

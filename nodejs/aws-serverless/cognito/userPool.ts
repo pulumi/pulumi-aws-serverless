@@ -323,23 +323,44 @@ export interface CustomMessageEvent extends CommonUserPoolEvent {
     };
 }
 
-export type UserPoolLambdaArgs = {
-    lambdaConfig?: {
-        createAuthChallenge?: Handler<CreateAuthChallengeEvent, CreateAuthChallengeEvent>;
-        customMessage?: Handler<CustomMessageEvent, CustomMessageEvent>;
-        defineAuthChallenge?: Handler<DefineAuthChallengeEvent, DefineAuthChallengeEvent>;
-        postAuthentication?: Handler<PostAuthenticationEvent, PostAuthenticationEvent>;
-        postConfirmation?: Handler<PostConfirmationEvent, PostConfirmationEvent>;
-        preAuthentication?: Handler<PreAuthenticationEvent, PreAuthenticationEvent>;
-        preSignUp?: Handler<PreSignUpEvent, PreSignUpEvent>;
-        preTokenGeneration?: Handler<PreTokenGenerationEvent, PreTokenGenerationEvent>;
-        userMigration?: Handler<UserMigrationEvent, UserMigrationEvent>;
-        verifyAuthChallengeResponse?: Handler<VerifyAuthChallengeEvent, VerifyAuthChallengeEvent>;
+export type UserPoolLambdaConfig = cognito.UserPoolArgs["lambdaConfig"];
+
+export interface UserPoolLambdaHandlers {
+    createAuthChallenge?: Handler<CreateAuthChallengeEvent, CreateAuthChallengeEvent>;
+    customMessage?: Handler<CustomMessageEvent, CustomMessageEvent>;
+    defineAuthChallenge?: Handler<DefineAuthChallengeEvent, DefineAuthChallengeEvent>;
+    postAuthentication?: Handler<PostAuthenticationEvent, PostAuthenticationEvent>;
+    postConfirmation?: Handler<PostConfirmationEvent, PostConfirmationEvent>;
+    preAuthentication?: Handler<PreAuthenticationEvent, PreAuthenticationEvent>;
+    preSignUp?: Handler<PreSignUpEvent, PreSignUpEvent>;
+    preTokenGeneration?: Handler<PreTokenGenerationEvent, PreTokenGenerationEvent>;
+    userMigration?: Handler<UserMigrationEvent, UserMigrationEvent>;
+    verifyAuthChallengeResponse?: Handler<VerifyAuthChallengeEvent, VerifyAuthChallengeEvent>;
+}
+
+export function createLambdaConfig(handlers?: UserPoolLambdaHandlers): UserPoolLambdaConfig | undefined {
+    if (!handlers) {
+        return undefined;
+    }
+
+    return {
+        createAuthChallenge: createLambda(handlers.createAuthChallenge),
+        customMessage: createLambda(handlers.customMessage),
+        defineAuthChallenge: createLambda(handlers.defineAuthChallenge),
+        postAuthentication: createLambda(handlers.postAuthentication),
+        postConfirmation: createLambda(handlers.postConfirmation),
+        preAuthentication: createLambda(handlers.preAuthentication),
+        preSignUp: createLambda(handlers.preSignUp),
+        preTokenGeneration: createLambda(handlers.preTokenGeneration),
+        userMigration: createLambda(handlers.userMigration),
+        verifyAuthChallengeResponse: createLambda(handlers.verifyAuthChallengeResponse),
     };
 }
 
-export type UserPoolArgs = Omit<cognito.UserPoolArgs, "lambdaConfig"> & UserPoolLambdaArgs;
+function createLambda<T>(handler: Handler<T, T> | undefined): pulumi.Output<string> | undefined {
+    if (!handler) {
+        return undefined;
+    }
 
-export function createUserPool(name: string, args?: UserPoolArgs, opts?: pulumi.ResourceOptions): cognito.UserPool {
     throw new RunError("NYI");
 }

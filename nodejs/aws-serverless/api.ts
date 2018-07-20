@@ -126,19 +126,22 @@ export class API extends pulumi.ComponentResource {
             restApi: this.restAPI,
             // Note: Set to empty to avoid creating an implicit stage, we'll create it explicitly below instead.
             stageName: "",
-        }, { parent: this });
-
-        // Create a stage, which is an addressable instance of the Rest API. Set it to point at the latest deployment.
-        this.stage = new aws.apigateway.Stage(name, {
-            restApi: this.restAPI,
-            deployment: this.deployment,
-            stageName: stageName,
+            // Note: We set `variables` here because it forces recreation of the Deployment object
+            // whenever the body hash changes.  Because we use a blank stage name above, there will
+            // not actually be any stage created in AWS, and thus these variables will not actually
+            // end up anywhere.  But this will still cause the right replacement of the Deployment
+            // when needed.  The Stage allocated below will be the stable stage that always points
+            // to the latest deployment of the API.
+            variables: {
+                version: swaggerString.apply(sha1hash),
+            },
         }, { parent: this });
 
         // Expose the URL that the API is served at.
         this.url = this.deployment.invokeUrl.apply(url => url + stageName + "/");
 
         // Ensure that the permissions allow the API Gateway to invoke the lambdas.
+        const permissions = [];
         if (swaggerSpec) {
             for (const path of Object.keys(swaggerSpec.paths)) {
                 for (let method of Object.keys(swaggerSpec.paths[path])) {
@@ -156,12 +159,24 @@ export class API extends pulumi.ComponentResource {
                             action: "lambda:invokeFunction",
                             function: lambda,
                             principal: "apigateway.amazonaws.com",
-                            sourceArn: this.deployment.executionArn.apply(arn => arn + stageName + "/" + method + path),
+                            // We give permission for this function to be invoked by any stage at the given method and
+                            // path on the API. We allow any stage instead of encoding the one known stage that will be
+                            // deployed by Pulumi because the API Gateway console "Test" feature invokes the route
+                            // handler with the fake stage `test-invoke-stage`.
+                            sourceArn: this.deployment.executionArn.apply(arn => arn + "*/" + method + path),
                         }, { parent: this });
+                        permissions.push(invokePermission);
                     }
                 }
             }
         }
+
+        // Create a stage, which is an addressable instance of the Rest API. Set it to point at the latest deployment.
+        this.stage = new aws.apigateway.Stage(name, {
+            restApi: this.restAPI,
+            deployment: this.deployment,
+            stageName: stageName,
+        }, { parent: this, dependsOn: permissions });
 
         this.registerOutputs({
             url: this.url,

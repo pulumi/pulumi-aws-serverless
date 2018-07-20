@@ -45,16 +45,16 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@pulumi/aws@^0.14.0":
-  version "0.14.1"
-  resolved "https://registry.yarnpkg.com/@pulumi/aws/-/aws-0.14.1.tgz#d0db840cf394f516737f4e2f0cfd450c1fa87ba9"
+"@pulumi/aws@^0.14.2":
+  version "0.14.2"
+  resolved "https://registry.yarnpkg.com/@pulumi/aws/-/aws-0.14.2.tgz#aee3162d22393e5878bd7e554e33e39c340ca5fe"
   dependencies:
     "@pulumi/pulumi" "^0.14.0"
     builtin-modules "3.0.0"
     read-package-tree "^5.2.1"
     resolve "^1.7.1"
 
-"@pulumi/pulumi@^0.14.0":
+"@pulumi/pulumi@^0.14.0", "@pulumi/pulumi@^0.14.2":
   version "0.14.2"
   resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-0.14.2.tgz#6b3454138526e7682f3ff8fe96acdfe093f43715"
   dependencies:
@@ -775,7 +775,11 @@ tar@^4:
     safe-buffer "^5.1.2"
     yallist "^3.0.2"
 
-typescript@^2.1.4, typescript@^2.5.2:
+typescript@^2.1.4:
+  version "2.9.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
+
+typescript@^2.5.2:
   version "2.9.1"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.1.tgz#fdb19d2c67a15d11995fd15640e373e09ab09961"
 

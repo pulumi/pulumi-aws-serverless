@@ -23,7 +23,7 @@ import { EventSubscription } from "./../subscription";
  * Arguments to control the event rule subscription.  Currently empty, but still defined in case of
  * future need.
  */
-export interface StreamEventSubscriptionArgs {
+interface StreamEventSubscriptionArgs {
     /**
      * The largest number of records that Lambda will retrieve from your event source at the time of invocation. Defaults to `100` for Kinesis.
      */
@@ -35,11 +35,11 @@ export interface StreamEventSubscriptionArgs {
     readonly startingPosition: "TRIM_HORIZON" | "LATEST";
 }
 
-export interface StreamEvent {
+interface StreamEvent {
     Records: StreamEventRecord[];
 }
 
-export interface StreamEventRecord {
+interface StreamEventRecord {
     eventID: string;
     eventVersion: string;
     kinesis: {
@@ -55,13 +55,14 @@ export interface StreamEventRecord {
     awsRegion: string;
 }
 
-export type StreamEventHandler = Handler<StreamEvent, void>;
+type StreamEventHandler = Handler<StreamEvent, void>;
 
-export function onEvent(name: string, stream: kinesis.Stream, handler: StreamEventHandler, args?: StreamEventSubscriptionArgs, opts?: pulumi.ResourceOptions): StreamEventSubscription {
+function onEvent(name: string, stream: kinesis.Stream, handler: StreamEventHandler,
+                        args: StreamEventSubscriptionArgs, opts?: pulumi.ResourceOptions): StreamEventSubscription {
     throw new RunError("NYI");
 }
 
-export class StreamEventSubscription extends EventSubscription {
+class StreamEventSubscription extends EventSubscription {
     public readonly stream: pulumi.Output<kinesis.Stream>;
 
     constructor(
@@ -72,16 +73,3 @@ export class StreamEventSubscription extends EventSubscription {
         throw new RunError("NYI");
     }
 }
-
-// Monkey-patch Stream to expose the members directly on it.
-
-// declare module "@pulumi/aws/kinesis/Stream" {
-//     export interface Stream {
-//         onEvent(name: string, handler: StreamEventHandler,
-//                 args?: StreamEventSubscriptionArgs, opts?: pulumi.ResourceOptions): StreamEventSubscription;
-//     }
-// }
-
-// aws.kinesis.Stream.prototype.onEvent = function (this: dynamodb.Stream, name, handler, args, opts) {
-//     return onEvent(name, this, handler, args, opts);
-// };

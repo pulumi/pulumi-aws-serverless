@@ -325,7 +325,7 @@ export interface CustomMessageEvent extends CommonUserPoolEvent {
 
 export type UserPoolLambdaConfig = cognito.UserPoolArgs["lambdaConfig"];
 
-export interface UserPoolLambdaHandlers {
+export interface UserPoolHandlers {
     createAuthChallenge?: Handler<CreateAuthChallengeEvent, CreateAuthChallengeEvent>;
     customMessage?: Handler<CustomMessageEvent, CustomMessageEvent>;
     defineAuthChallenge?: Handler<DefineAuthChallengeEvent, DefineAuthChallengeEvent>;
@@ -338,7 +338,7 @@ export interface UserPoolLambdaHandlers {
     verifyAuthChallengeResponse?: Handler<VerifyAuthChallengeEvent, VerifyAuthChallengeEvent>;
 }
 
-export function createLambdaConfig(handlers?: UserPoolLambdaHandlers): UserPoolLambdaConfig | undefined {
+export function createLambdaConfig(handlers: UserPoolHandlers | undefined): UserPoolLambdaConfig | undefined {
     if (!handlers) {
         return undefined;
     }

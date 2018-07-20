@@ -18,8 +18,6 @@ import * as pulumi from "@pulumi/pulumi";
 import { RunError } from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
-import { Omit } from "./../utils";
-
 interface ViewerOrOriginRequestEvent {
     Records: ViewerOrOriginRequestEventRecord[];
 }
@@ -203,9 +201,9 @@ interface ViewerOrOriginResponseEventRecord {
     };
 }
 
-export type Headers = Record<string, { key: string, value: string }[]>;
+type Headers = Record<string, { key: string, value: string }[]>;
 
-export interface Result {
+interface Result {
     // The body, if any, that you want CloudFront to return in the generated response.
     body?: string;
 
@@ -251,35 +249,54 @@ export interface Result {
     statusDescription?: string;
 }
 
-export interface LambdaFunctionAssociation {
+interface LambdaFunctionAssociation {
     eventType: "viewer-request" | "viewer-response" | "origin-request" | "origin-response";
     lambdaArn: pulumi.Input<string>;
 }
 
-export function createViewerRequestLambdaFunctionAssociation(
-    name: string, handler: Handler<ViewerOrOriginRequestEvent, Result>, opts?: pulumi.ResourceOptions): pulumi.Output<LambdaFunctionAssociation> {
+interface DistributionHandlers {
+    // The function executes when CloudFront receives a request from a viewer, before it checks to
+    // see whether the requested object is in the edge cache.
+    viewerRequest?: Handler<ViewerOrOriginRequestEvent, Result>;
 
-    throw new RunError("NYI");
+    // The function executes only when CloudFront forwards a request to your origin. When the
+    // requested object is in the edge cache, the function doesn't execute.
+    originRequest?: Handler<ViewerOrOriginRequestEvent, Result>;
+
+    // The function executes before returning the requested file to the viewer. Note that the
+    // function executes regardless of whether the file is already in the edge cache.
+    viewerResponse?: Handler<ViewerOrOriginResponseEvent, Result>;
+
+    // The function executes after CloudFront receives a response from the origin and before it
+    // caches the object in the response. Note that the function executes even if an error is
+    // returned from the origin.
+    originResponse?: Handler<ViewerOrOriginResponseEvent, Result>;
 }
 
-export function createOriginRequestLambdaFunctionAssociation(
-    name: string, handler: Handler<ViewerOrOriginRequestEvent, Result>, opts?: pulumi.ResourceOptions): pulumi.Output<LambdaFunctionAssociation> {
+export function createLambdaFunctionAssociations(handlers: DistributionHandlers | undefined): LambdaFunctionAssociation[] | undefined {
+    if (!handlers) {
+        return undefined;
+    }
 
-    throw new RunError("NYI");
+    const result: LambdaFunctionAssociation[] = [];
+    addIfExists(createLambdaFunctionAssociation(handlers.viewerRequest));
+    addIfExists(createLambdaFunctionAssociation(handlers.originRequest));
+    addIfExists(createLambdaFunctionAssociation(handlers.viewerResponse));
+    addIfExists(createLambdaFunctionAssociation(handlers.originResponse));
+
+    return result.length === 0 ? undefined : result;
+
+    function addIfExists(association: LambdaFunctionAssociation | undefined) {
+        if (association) {
+            result.push(association);
+        }
+    }
 }
 
-export function createViewerResponseLambdaFunctionAssociation(
-    name: string, handler: Handler<ViewerOrOriginResponseEvent, Result>, opts?: pulumi.ResourceOptions): pulumi.Output<LambdaFunctionAssociation> {
+function createLambdaFunctionAssociation<E, R>(handler: Handler<E, R> | undefined): LambdaFunctionAssociation | undefined {
+    if (!handler) {
+        return undefined;
+    }
 
     throw new RunError("NYI");
-}
-
-export function createOriginResponseLambdaFunctionAssociation(
-    name: string, handler: Handler<ViewerOrOriginResponseEvent, Result>, opts?: pulumi.ResourceOptions): pulumi.Output<LambdaFunctionAssociation> {
-
-    throw new RunError("NYI");
-}
-
-export function createLambdaFunctionAssociations(associations: pulumi.Output<LambdaFunctionAssociation>[]): pulumi.Output<LambdaFunctionAssociation[]> {
-    return pulumi.all(associations);
 }

@@ -20,18 +20,6 @@ import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
 import { Omit } from "./../utils";
 
-type GetTypeParameter<T> = T extends pulumi.Input<infer U> ? U : never;
-type CloudFrontDistributionCacheBehavior = GetTypeParameter<cloudfront.DistributionArgs["defaultCacheBehavior"]>;
-
-export type DistributionCacheBehavior = Omit<CloudFrontDistributionCacheBehavior, "lambdaFunctionAssociations"> & {
-    lambdaConfig?: {
-        viewerRequest?: Handler<ViewerOrOriginRequestEvent, ViewerOrOriginRequestEvent>;
-        originRequest?: Handler<ViewerOrOriginRequestEvent, ViewerOrOriginRequestEvent>;
-        viewerResponse?: Handler<ViewerOrOriginResponseEvent, ViewerOrOriginResponseEvent>;
-        originResponse?: Handler<ViewerOrOriginResponseEvent, ViewerOrOriginResponseEvent>;
-    };
-};
-
 interface ViewerOrOriginRequestEvent {
     Records: ViewerOrOriginRequestEventRecord[];
 }
@@ -263,14 +251,6 @@ export interface Result {
     statusDescription?: string;
 }
 
-type DistributionArgs = Omit<cloudfront.DistributionArgs, "cacheBehaviors" | "defaultCacheBehavior" | "orderedCacheBehaviors"> & {
-    defaultCacheBehavior?: DistributionCacheBehavior;
-    cacheBehaviors?: DistributionCacheBehavior[];
-    orderedCacheBehaviors?: DistributionCacheBehavior[];
-};
-
-// "viewer-request"|"viewer-response"|"origin-request"|"origin-response"
-
 export interface LambdaFunctionAssociation {
     eventType: "viewer-request" | "viewer-response" | "origin-request" | "origin-response";
     lambdaArn: pulumi.Input<string>;
@@ -302,8 +282,4 @@ export function createOriginResponseLambdaFunctionAssociation(
 
 export function createLambdaFunctionAssociations(associations: pulumi.Output<LambdaFunctionAssociation>[]): pulumi.Output<LambdaFunctionAssociation[]> {
     return pulumi.all(associations);
-}
-
-export function createDistribution(name: string, args: DistributionArgs, opts?: pulumi.ResourceOptions): cloudfront.Distribution {
-    throw new RunError("NYI");
 }

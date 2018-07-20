@@ -62,7 +62,7 @@ export interface TableEventRecord {
 
 export type TableEventHandler = Handler<TableEvent, void>;
 
-export function onEvent(name: string, table: dynamodb.Table, handler: TableEventHandler, args?: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TableEventSubscription {
+export function onEvent(name: string, table: dynamodb.Table, handler: TableEventHandler, args: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TableEventSubscription {
     throw new RunError("NYI");
 }
 

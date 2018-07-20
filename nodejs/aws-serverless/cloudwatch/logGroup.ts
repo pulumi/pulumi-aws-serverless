@@ -25,11 +25,6 @@ import { EventSubscription } from "./../subscription";
  */
 export interface LogGroupEventSubscriptionArgs {
     /**
-    * A name for the subscription filter
-    */
-    name: string;
-
-    /**
      * A valid CloudWatch Logs filter pattern for subscribing to a filtered stream of log events.
      */
     filterPattern?: string;

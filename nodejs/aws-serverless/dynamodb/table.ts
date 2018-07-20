@@ -51,7 +51,7 @@ export interface TableEventRecord {
        StreamViewType: string;
     };
     eventID: string;
-    eventName: string;
+    eventName: "INSERT" | "MODIFY" | "REMOVE";
     eventSource: string;
     eventVersion: string;
     userIdentity: {

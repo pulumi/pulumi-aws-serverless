@@ -20,12 +20,8 @@ import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
 import { Omit } from "./../utils";
 
-// We want to
-function dummy(dist: cloudfront.Distribution) {
-    return dist.defaultCacheBehavior.get();
-}
-
-type CloudFrontDistributionCacheBehavior = ReturnType<typeof dummy>;
+type GetTypeParameter<T> = T extends pulumi.Input<infer U> ? U : never;
+type CloudFrontDistributionCacheBehavior = GetTypeParameter<cloudfront.DistributionArgs["defaultCacheBehavior"]>;
 
 export type DistributionCacheBehavior = Omit<CloudFrontDistributionCacheBehavior, "lambdaFunctionAssociations"> & {
     lambdaConfig?: {

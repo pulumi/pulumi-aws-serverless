@@ -14,11 +14,11 @@
 
 import * as aws from "@pulumi/aws";
 import { cloudwatch, lambda } from "@pulumi/aws";
+import { LogGroup } from "@pulumi/aws/cloudwatch";
 import * as pulumi from "@pulumi/pulumi";
 import { RunError } from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
-import { LogGroup } from "@pulumi/aws/cloudwatch";
 
 /**
  * Arguments to control the event rule subscription.  Currently empty, but still defined in case of

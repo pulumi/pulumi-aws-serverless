@@ -19,7 +19,7 @@ import { RunError } from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
 
-export interface RepositoryEvent {
+interface RepositoryEvent {
     version: string;
     id: string;
     "detail-type": string;
@@ -40,7 +40,7 @@ export interface RepositoryEvent {
     };
 }
 
-export interface RepositoryRecord {
+interface RepositoryRecord {
     messageId: string;
     receiptHandle: string;
     body: string;
@@ -57,12 +57,12 @@ export interface RepositoryRecord {
     awsRegion: string;
 }
 
-export type RepositoryEventHandler = Handler<RepositoryEvent, void>;
+type RepositoryEventHandler = Handler<RepositoryEvent, void>;
 
 /**
  * Arguments to control the repository subscription.
  */
-export interface CommonRepositoryEventSubscriptionArgs {
+interface CommonRepositoryEventSubscriptionArgs {
     /**
      * Events will be fired for all repository branches and tags by default. For a more specific
      * configuration, choose up to 10 branches. If you subscribe to "onAnyEvent", you cannot choose
@@ -74,11 +74,11 @@ export interface CommonRepositoryEventSubscriptionArgs {
 /**
  * Arguments to control the repository subscription.
  */
-export interface RepositoryEventSubscriptionArgs extends CommonRepositoryEventSubscriptionArgs {
+interface RepositoryEventSubscriptionArgs extends CommonRepositoryEventSubscriptionArgs {
     events: string[];
 }
 
-export function onAnyEvent(
+function onAnyEvent(
     name: string, queue: codecommit.Repository, handler: RepositoryEventHandler,
     args?: CommonRepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
@@ -86,7 +86,7 @@ export function onAnyEvent(
     return onEvent(name, queue, handler, { branches: args!.branches, events: ["all"] }, opts);
 }
 
-export function onBranchOrTagCreated(
+function onBranchOrTagCreated(
     name: string, queue: codecommit.Repository, handler: RepositoryEventHandler,
     args?: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
@@ -94,7 +94,7 @@ export function onBranchOrTagCreated(
     return onEvent(name, queue, handler, { branches: args!.branches, events: ["createReference"] }, opts);
 }
 
-export function onBranchOrTagDeleted(
+function onBranchOrTagDeleted(
     name: string, queue: codecommit.Repository, handler: RepositoryEventHandler,
     args?: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
@@ -102,7 +102,7 @@ export function onBranchOrTagDeleted(
     return onEvent(name, queue, handler, { branches: args!.branches, events: ["deleteReference"] }, opts);
 }
 
-export function onExistingBranchPushed(
+function onExistingBranchPushed(
     name: string, queue: codecommit.Repository, handler: RepositoryEventHandler,
     args?: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
@@ -110,14 +110,14 @@ export function onExistingBranchPushed(
     return onEvent(name, queue, handler, { branches: args!.branches, events: ["updateReference"] }, opts);
 }
 
-export function onEvent(
+function onEvent(
     name: string, queue: codecommit.Repository, handler: RepositoryEventHandler,
     args: RepositoryEventSubscriptionArgs, opts?: pulumi.ResourceOptions): RepositoryEventSubscription {
 
     throw new RunError("NYI");
 }
 
-export class RepositoryEventSubscription extends EventSubscription {
+class RepositoryEventSubscription extends EventSubscription {
     public readonly repository: pulumi.Output<codecommit.Repository>;
 
     public constructor(

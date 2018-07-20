@@ -20,7 +20,7 @@ import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
 import { Omit } from "./../utils";
 
-export interface CommonUserPoolEvent {
+interface CommonUserPoolEvent {
     // The version number of your Lambda function.
     version: number;
 
@@ -57,7 +57,7 @@ export interface CommonUserPoolEvent {
     response: {};
 }
 
-export interface PreSignUpEvent extends CommonUserPoolEvent {
+interface PreSignUpEvent extends CommonUserPoolEvent {
     triggerSource: "PreSignUp_AdminCreateUser";
     request: {
         userAttributes: Record<string, string>;
@@ -89,12 +89,12 @@ export interface PreSignUpEvent extends CommonUserPoolEvent {
 }
 
 // No additional return information is expected in the response.
-export interface PostConfirmationEvent extends CommonUserPoolEvent {
+interface PostConfirmationEvent extends CommonUserPoolEvent {
     triggerSource: "PostConfirmation_ConfirmSignUp";
 }
 
 // No additional return information is expected in the response.
-export interface PreAuthenticationEvent extends CommonUserPoolEvent {
+interface PreAuthenticationEvent extends CommonUserPoolEvent {
     triggerSource: "PreAuthentication_Authentication";
 
     request: {
@@ -106,7 +106,7 @@ export interface PreAuthenticationEvent extends CommonUserPoolEvent {
 }
 
 // No additional return information is expected in the response.
-export interface PostAuthenticationEvent extends CommonUserPoolEvent {
+interface PostAuthenticationEvent extends CommonUserPoolEvent {
     triggerSource: "PostAuthentication_Authentication";
 
     request: {
@@ -118,7 +118,7 @@ export interface PostAuthenticationEvent extends CommonUserPoolEvent {
     };
 }
 
-export interface CreateAuthChallengeEvent extends CommonUserPoolEvent {
+interface CreateAuthChallengeEvent extends CommonUserPoolEvent {
     triggerSource: "CreateAuthChallenge_Authentication";
 
     request: {
@@ -155,7 +155,7 @@ export interface CreateAuthChallengeEvent extends CommonUserPoolEvent {
     };
 }
 
-export interface DefineAuthChallengeEvent extends CommonUserPoolEvent {
+interface DefineAuthChallengeEvent extends CommonUserPoolEvent {
     triggerSource: "DefineAuthChallenge_Authentication";
 
     request: {
@@ -189,7 +189,7 @@ export interface DefineAuthChallengeEvent extends CommonUserPoolEvent {
     };
 }
 
-export interface PreTokenGenerationEvent extends CommonUserPoolEvent {
+interface PreTokenGenerationEvent extends CommonUserPoolEvent {
     triggerSource: "TokenGeneration_HostedAuth" | "TokenGeneration_Authentication" | "TokenGeneration_NewPasswordChallenge" | "TokenGeneration_AuthenticateDevice" | "TokenGeneration_RefreshTokens";
 
     request: {
@@ -232,7 +232,7 @@ export interface PreTokenGenerationEvent extends CommonUserPoolEvent {
     };
 }
 
-export interface UserMigrationEvent extends CommonUserPoolEvent {
+interface UserMigrationEvent extends CommonUserPoolEvent {
     triggerSource: "UserMigration_Authentication" | "UserMigration_ForgotPassword";
 
     request: {
@@ -276,7 +276,7 @@ export interface UserMigrationEvent extends CommonUserPoolEvent {
     };
 }
 
-export interface VerifyAuthChallengeEvent extends CommonUserPoolEvent {
+interface VerifyAuthChallengeEvent extends CommonUserPoolEvent {
     triggerSource: "VerifyAuthChallengeResponse_Authentication";
 
     request: {
@@ -296,7 +296,7 @@ export interface VerifyAuthChallengeEvent extends CommonUserPoolEvent {
     };
 }
 
-export interface CustomMessageEvent extends CommonUserPoolEvent {
+interface CustomMessageEvent extends CommonUserPoolEvent {
     triggerSource: "CustomMessage_SignUp" | "CustomMessage_AdminCreateUser" | "CustomMessage_ResendCode" | "CustomMessage_ForgotPassword" | "CustomMessage_UpdateUserAttribute" | "CustomMessage_VerifyUserAttribute" | "CustomMessage_Authentication";
 
     request: {
@@ -323,9 +323,9 @@ export interface CustomMessageEvent extends CommonUserPoolEvent {
     };
 }
 
-export type UserPoolLambdaConfig = cognito.UserPoolArgs["lambdaConfig"];
+type UserPoolLambdaConfig = cognito.UserPoolArgs["lambdaConfig"];
 
-export interface UserPoolHandlers {
+interface UserPoolHandlers {
     createAuthChallenge?: Handler<CreateAuthChallengeEvent, CreateAuthChallengeEvent>;
     customMessage?: Handler<CustomMessageEvent, CustomMessageEvent>;
     defineAuthChallenge?: Handler<DefineAuthChallengeEvent, DefineAuthChallengeEvent>;
@@ -338,7 +338,7 @@ export interface UserPoolHandlers {
     verifyAuthChallengeResponse?: Handler<VerifyAuthChallengeEvent, VerifyAuthChallengeEvent>;
 }
 
-export function createLambdaConfig(handlers: UserPoolHandlers | undefined): UserPoolLambdaConfig | undefined {
+function createLambdaConfig(handlers: UserPoolHandlers | undefined): UserPoolLambdaConfig | undefined {
     if (!handlers) {
         return undefined;
     }

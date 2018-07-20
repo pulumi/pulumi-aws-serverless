@@ -23,7 +23,7 @@ import { EventSubscription } from "./../subscription";
  * Arguments to control the event rule subscription.  Currently empty, but still defined in case of
  * future need.
  */
-export interface TableEventSubscriptionArgs {
+interface TableEventSubscriptionArgs {
     /**
      * The largest number of records that Lambda will retrieve from your event source at the time of invocation. Defaults to `100` for DynamoDB.
      */
@@ -35,11 +35,11 @@ export interface TableEventSubscriptionArgs {
     readonly startingPosition: "TRIM_HORIZON" | "LATEST";
 }
 
-export interface TableEvent {
+interface TableEvent {
     Records: TableEventRecord[];
 }
 
-export interface TableEventRecord {
+interface TableEventRecord {
     awsRegion: string;
     dynamodb: {
        ApproximateCreationDateTime: number;
@@ -60,13 +60,13 @@ export interface TableEventRecord {
     };
  }
 
-export type TableEventHandler = Handler<TableEvent, void>;
+type TableEventHandler = Handler<TableEvent, void>;
 
-export function onEvent(name: string, table: dynamodb.Table, handler: TableEventHandler, args: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TableEventSubscription {
+function onEvent(name: string, table: dynamodb.Table, handler: TableEventHandler, args: TableEventSubscriptionArgs, opts?: pulumi.ResourceOptions): TableEventSubscription {
     throw new RunError("NYI");
 }
 
-export class TableEventSubscription extends EventSubscription {
+class TableEventSubscription extends EventSubscription {
     public readonly table: pulumi.Output<dynamodb.Table>;
 
     constructor(

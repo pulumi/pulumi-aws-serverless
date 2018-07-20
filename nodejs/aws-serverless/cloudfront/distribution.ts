@@ -273,7 +273,7 @@ interface DistributionHandlers {
     originResponse?: Handler<ViewerOrOriginResponseEvent, Result>;
 }
 
-export function createLambdaFunctionAssociations(handlers: DistributionHandlers | undefined): LambdaFunctionAssociation[] | undefined {
+function createLambdaFunctionAssociations(handlers: DistributionHandlers | undefined): LambdaFunctionAssociation[] | undefined {
     if (!handlers) {
         return undefined;
     }

@@ -24,14 +24,14 @@ import { LogGroup } from "@pulumi/aws/cloudwatch";
  * Arguments to control the event rule subscription.  Currently empty, but still defined in case of
  * future need.
  */
-export interface LogGroupEventSubscriptionArgs {
+interface LogGroupEventSubscriptionArgs {
     /**
      * A valid CloudWatch Logs filter pattern for subscribing to a filtered stream of log events.
      */
     filterPattern?: string;
 }
 
-export interface LogGroupEvent {
+interface LogGroupEvent {
     awslogs: {
         // The data attribute in the Lambda record is Base64 encoded and compressed with the gzip
         // format.
@@ -39,7 +39,7 @@ export interface LogGroupEvent {
     };
 }
 
-export interface DecodedLogGroupEvent {
+interface DecodedLogGroupEvent {
     // The AWS Account ID of the originating log data.
     owner: string;
 
@@ -61,15 +61,15 @@ export interface DecodedLogGroupEvent {
     logEvents: LogGroupEventRecord[];
 }
 
-export interface LogGroupEventRecord {
+interface LogGroupEventRecord {
     id: string;
     timestamp: number;
     message: string;
 }
 
-export type LogGroupEventHandler = Handler<LogGroupEvent, void>;
+type LogGroupEventHandler = Handler<LogGroupEvent, void>;
 
-export async function decodeLogGroupEvent(event: LogGroupEvent): Promise<DecodedLogGroupEvent> {
+async function decodeLogGroupEvent(event: LogGroupEvent): Promise<DecodedLogGroupEvent> {
     const zlib = await import("zlib");
     const payload = new Buffer(event.awslogs.data, "base64");
 
@@ -84,11 +84,11 @@ export async function decodeLogGroupEvent(event: LogGroupEvent): Promise<Decoded
     });
 }
 
-export function onEvent(name: string, logGroup: cloudwatch.LogGroup, handler: LogGroupEventHandler, args?: LogGroupEventSubscriptionArgs, opts?: pulumi.ResourceOptions): LogGroupEventSubscription {
+function onEvent(name: string, logGroup: cloudwatch.LogGroup, handler: LogGroupEventHandler, args?: LogGroupEventSubscriptionArgs, opts?: pulumi.ResourceOptions): LogGroupEventSubscription {
     throw new RunError("NYI");
 }
 
-export class LogGroupEventSubscription extends EventSubscription {
+class LogGroupEventSubscription extends EventSubscription {
     public readonly logGroup: pulumi.Output<cloudwatch.LogGroup>;
 
     constructor(

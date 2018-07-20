@@ -15,13 +15,26 @@
 import * as pulumi from "@pulumi/pulumi";
 
 import * as apigateway from "./api";
+import * as cloudfront from "./cloudfront";
 import * as cloudwatch from "./cloudwatch";
+import * as codecommit from "./codecommit";
 import * as dynamodb from "./dynamodb";
+import * as kinesis from "./kinesis";
 import * as s3 from "./s3";
 import * as sns from "./sns";
 import * as sqs from "./sqs";
 
-export { apigateway, cloudwatch, dynamodb, s3, sns, sqs };
+export {
+    apigateway,
+    cloudfront,
+    cloudwatch,
+    codecommit,
+    dynamodb,
+    kinesis,
+    s3,
+    sns,
+    sqs,
+};
 
 // declare module "@pulumi/aws/s3/bucket" {
 //     export interface Bucket {

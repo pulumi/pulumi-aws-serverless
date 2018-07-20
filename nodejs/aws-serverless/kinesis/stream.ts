@@ -58,7 +58,7 @@ interface StreamEventRecord {
 type StreamEventHandler = Handler<StreamEvent, void>;
 
 function onEvent(name: string, stream: kinesis.Stream, handler: StreamEventHandler,
-                        args: StreamEventSubscriptionArgs, opts?: pulumi.ResourceOptions): StreamEventSubscription {
+                 args: StreamEventSubscriptionArgs, opts?: pulumi.ResourceOptions): StreamEventSubscription {
     throw new RunError("NYI");
 }
 

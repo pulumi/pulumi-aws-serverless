@@ -249,8 +249,10 @@ interface Result {
     statusDescription?: string;
 }
 
+type EventType = "viewer-request" | "viewer-response" | "origin-request" | "origin-response";
+
 interface LambdaFunctionAssociation {
-    eventType: "viewer-request" | "viewer-response" | "origin-request" | "origin-response";
+    eventType: EventType;
     lambdaArn: pulumi.Input<string>;
 }
 
@@ -279,10 +281,10 @@ function createLambdaFunctionAssociations(handlers: DistributionHandlers | undef
     }
 
     const result: LambdaFunctionAssociation[] = [];
-    addIfExists(createLambdaFunctionAssociation(handlers.viewerRequest));
-    addIfExists(createLambdaFunctionAssociation(handlers.originRequest));
-    addIfExists(createLambdaFunctionAssociation(handlers.viewerResponse));
-    addIfExists(createLambdaFunctionAssociation(handlers.originResponse));
+    addIfExists(createLambdaFunctionAssociation("viewer-request", handlers.viewerRequest));
+    addIfExists(createLambdaFunctionAssociation("origin-request", handlers.originRequest));
+    addIfExists(createLambdaFunctionAssociation("viewer-response", handlers.viewerResponse));
+    addIfExists(createLambdaFunctionAssociation("origin-response", handlers.originResponse));
 
     return result.length === 0 ? undefined : result;
 
@@ -293,10 +295,14 @@ function createLambdaFunctionAssociations(handlers: DistributionHandlers | undef
     }
 }
 
-function createLambdaFunctionAssociation<E, R>(handler: Handler<E, R> | undefined): LambdaFunctionAssociation | undefined {
+function createLambdaFunctionAssociation<E, R>(eventType: EventType, handler: Handler<E, R> | undefined): LambdaFunctionAssociation | undefined {
     if (!handler) {
         return undefined;
     }
 
+    return { eventType: eventType, lambdaArn: createLambdaAndGetArn(handler) };
+}
+
+function createLambdaAndGetArn<E, R>(handler: Handler<E, R>): pulumi.Output<string> {
     throw new RunError("NYI");
 }

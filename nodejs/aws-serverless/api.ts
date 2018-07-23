@@ -93,20 +93,38 @@ export interface StaticRoute {
     index?: boolean | string;
 }
 
+export interface ProxyRoute {
+    path: string;
+    target: string | pulumi.Output<Endpoint>;
+}
+
+export interface Endpoint {
+    hostname: string;
+    port: number;
+    loadBalancer: aws.elasticloadbalancingv2.LoadBalancer;
+}
+
 export interface APIArgs {
     /**
-     * The full specification to use to create the API.
-     *
-     * Either [swaggerSpec] or [swaggerString] must be specified.
+     * Routes to use to initialize the APIGateway.
      */
-    swaggerSpec?: SwaggerSpec;
+    routes?: Route[];
+    /**
+     * Static routes to use to initialize the APIGateway.
+     */
+    staticRoutes?: StaticRoute[];
+
+    /**
+     * Proxy routes to use to initialize the APIGateway.
+     */
+    proxyRoutes?: ProxyRoute[];
 
     /**
      * A Swagger specification already in string form to use to initialize the APIGateway.  Note
      * that you must manually provide permission for any route targets to be invoked by API Gateway
      * when using [swaggerString].
      *
-     * Either [swaggerSpec] or [swaggerString] must be specified.
+     * Either [swaggerString] or at least one 'route' must be specified.
      */
     swaggerString?: pulumi.Input<string>;
 
@@ -127,11 +145,11 @@ export class API extends pulumi.ComponentResource {
         let swaggerSpec: SwaggerSpec | undefined;
         if (args.swaggerString) {
             swaggerString = pulumi.output(args.swaggerString);
-        } else if (args.swaggerSpec) {
-            swaggerSpec = args.swaggerSpec;
+        } else if (args.routes || args.staticRoutes || args.proxyRoutes) {
+            swaggerSpec = createSwaggerSpec(name, args.routes, args.staticRoutes, args.proxyRoutes, { parent: this });
             swaggerString = createSwaggerString(swaggerSpec);
         } else {
-            throw new Error("API must specify either `swaggerString` or `swaggerSpec` options.");
+            throw new Error("API must specify either `swaggerString`, `swaggerSpec`, or as least one type of `route` option.");
         }
 
         const stageName = args.stageName || "stage";
@@ -279,32 +297,36 @@ interface ApigatewayIntegrationAsync extends ApigatewayIntegrationBase {
     connectionId?: pulumi.Output<string>;
 }
 
-export function createSwaggerSpec(
-    name: string, routes?: Route[], staticRoutes?: StaticRoute[], opts?: pulumi.ResourceOptions): SwaggerSpec {
+function createSwaggerSpec(
+    name: string, routes?: Route[], staticRoutes?: StaticRoute[],
+    proxyRoutes?: ProxyRoute[], opts?: pulumi.ResourceOptions): SwaggerSpec {
 
-    return addStaticRoutesToSwaggerSpec(
-        name, staticRoutes,
-        addRoutesToSwaggerSpec(routes, createBaseSwaggerSpec(name)),
-        opts);
-}
-
-export function addRoutesToSwaggerSpec(routes: Route[] | undefined, swagger: SwaggerSpec): SwaggerSpec {
-    if (routes) {
-        for (const route of routes) {
-            const method = swaggerMethod(route.method);
-            const lambda = createLambdaFunction(name + sha1hash(method + ":" + route.path), route.handler);
-            if (!swagger.paths[route.path]) {
-                swagger.paths[route.path] = {};
-            }
-            swagger.paths[route.path][method] = createPathSpecLambda(lambda);
-        }
-    }
-
+    const swagger = createBaseSwaggerSpec(name);
+    addRoutesToSwaggerSpec(name, swagger, routes, opts);
+    addStaticRoutesToSwaggerSpec(name, swagger, staticRoutes, opts);
+    addProxyRoutesToSwaggerSpec(name, swagger, proxyRoutes, opts);
     return swagger;
 }
 
-export function addStaticRoutesToSwaggerSpec(
-    name: string, routes: StaticRoute[] | undefined, swagger: SwaggerSpec, opts?: pulumi.ResourceOptions): SwaggerSpec {
+function addRoutesToSwaggerSpec(
+    name: string, swagger: SwaggerSpec, routes?: Route[], opts?: pulumi.ResourceOptions) {
+
+    if (!routes || routes.length === 0) {
+        return;
+    }
+
+    for (const route of routes) {
+        const method = swaggerMethod(route.method);
+        const lambda = createLambdaFunction(name + sha1hash(method + ":" + route.path), route.handler);
+        if (!swagger.paths[route.path]) {
+            swagger.paths[route.path] = {};
+        }
+        swagger.paths[route.path][method] = createPathSpecLambda(lambda);
+    }
+}
+
+function addStaticRoutesToSwaggerSpec(
+    name: string, swagger: SwaggerSpec, routes?: StaticRoute[], opts?: pulumi.ResourceOptions) {
 
     // If there are no static files or directories, then we can bail out early.
     if (!routes || routes.length === 0) {
@@ -345,7 +367,7 @@ export function addStaticRoutesToSwaggerSpec(
         }
     }
 
-    return swagger;
+    return;
 
     function createBucketObject(key: string, localPath: string, contentType?: string) {
         const obj = new aws.s3.BucketObject(key, {
@@ -433,6 +455,52 @@ export function addStaticRoutesToSwaggerSpec(
     }
 }
 
+function addProxyRoutesToSwaggerSpec(name: string, swagger: SwaggerSpec, routes?: ProxyRoute[], opts?: pulumi.ResourceOptions) {
+    if (!routes || routes.length === 0) {
+        return;
+    }
+
+    const method = "x-amazon-apigateway-any-method";
+    for (const route of routes) {
+        const swaggerPath = route.path.endsWith("/")
+            ? route.path
+            : route.path + "/";
+        const swaggerPathProxy = swaggerPath + "{proxy+}";
+
+        // If this is an Endpoint proxy, create a VpcLink to the load balancer in the VPC
+        let vpcLink: aws.apigateway.VpcLink | undefined = undefined;
+        if (typeof route.target !== "string") {
+            const targetArn = route.target.apply(endpoint => {
+                if (!endpoint.loadBalancer) {
+                    throw new pulumi.RunError("AWS endpoint proxy requires an AWS Endpoint");
+                }
+                return endpoint.loadBalancer.loadBalancerType.apply(loadBalancerType => {
+                    if (loadBalancerType === "application") {
+                        // We can only support proxying to an Endpoint if it is backed by an
+                        // NLB, which will only be the case for cloud.Service ports exposed as
+                        // type "tcp".
+                        throw new pulumi.RunError(
+                            "AWS endpoint proxy requires an Endpoint on a service port of type 'tcp'");
+                    }
+                    return endpoint.loadBalancer.arn;
+                });
+            });
+
+            vpcLink = new aws.apigateway.VpcLink(name + sha1hash(route.path), {
+                targetArn: targetArn,
+            });
+        }
+
+        // Register two paths in the Swagger spec, for the root and for a catch all under the root
+        swagger.paths[swaggerPath] = {
+            [method]: createPathSpecProxy(route.target, vpcLink, false),
+        };
+        swagger.paths[swaggerPathProxy] = {
+            [method]: createPathSpecProxy(route.target, vpcLink, true),
+        };
+    }
+}
+
 function createBaseSwaggerSpec(apiName: string): SwaggerSpec {
     return {
         swagger: "2.0",
@@ -476,7 +544,6 @@ function createPathSpecLambda(lambda: aws.lambda.Function): SwaggerOperationAsyn
 }
 
 function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
-
     const pathsOutput = outputFromObject(spec.paths, methods => outputFromObject(methods, resolveOperationDependencies));
 
     // After all values have settled, we can produce the resulting string.
@@ -525,6 +592,62 @@ function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
             connectionId: connectionId,
         }));
     }
+}
+
+function createPathSpecProxy(
+    target: string | pulumi.Output<Endpoint>,
+    vpcLink: aws.apigateway.VpcLink | undefined,
+    useProxyPathParameter: boolean): SwaggerOperationAsync {
+
+    const uri =
+        pulumi.all([<string>target, <pulumi.Output<Endpoint>>target])
+              .apply(([targetStr, targetEndpoint]) => {
+                  let url = "";
+                  if (typeof targetStr === "string") {
+                      // For URL target, ensure there is a trailing `/`
+                      url = targetStr;
+                      if (!url.endsWith("/")) {
+                          url = url + "/";
+                      }
+                  } else {
+                      // For Endpoint target, construct an HTTP URL from the hostname and port
+                      url = `http://${targetEndpoint.hostname}:${targetEndpoint.port}/`;
+                  }
+
+                  if (useProxyPathParameter) {
+                      return `${url}{proxy}`;
+                  } else {
+                      return url;
+                  }
+              });
+
+    const result: SwaggerOperationAsync = {
+        "x-amazon-apigateway-integration": {
+            responses: {
+                default: {
+                    statusCode: "200",
+                },
+            },
+            uri: uri,
+            passthroughBehavior: "when_no_match",
+            httpMethod: "ANY",
+            connectionType: vpcLink ? "VPC_LINK" : undefined,
+            connectionId: vpcLink ? vpcLink.id : undefined,
+            type: "http_proxy",
+        },
+    };
+    if (useProxyPathParameter) {
+        result.parameters = [{
+            name: "proxy",
+            in: "path",
+            required: true,
+            type: "string",
+        }];
+        result["x-amazon-apigateway-integration"].requestParameters = {
+            "integration.request.path.proxy": "method.request.path.proxy",
+        };
+    }
+    return result;
 }
 
 function createPathSpecObject(

@@ -7,8 +7,8 @@
         "build": "tsc"
     },
     "dependencies": {
+        "@pulumi/pulumi": "^0.14.4-dev-1532459229-g1ec4939b",
         "@pulumi/aws": "^0.14.2",
-        "@pulumi/pulumi": "^0.14.2",
         "node-fetch": "^1.7.3"
     },
     "devDependencies": {

@@ -12,7 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as eventRule from "./eventRule";
-import * as logGroup from "./logGroup";
-
-export { eventRule, logGroup };
+export { onEventRuleEvent, onSchedule } from "./eventRule";

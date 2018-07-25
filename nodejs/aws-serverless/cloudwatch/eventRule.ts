@@ -65,10 +65,10 @@ export type EventRuleEventHandler = Handler<EventRuleEvent, void>;
 
 export function onSchedule(name: string, schedule: string, handler: EventRuleEventHandler, args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription {
     const eventRule = new cloudwatch.EventRule(name, { scheduleExpression: schedule }, opts);
-    return onEvent(name, eventRule, handler, args, opts);
+    return onEventRuleEvent(name, eventRule, handler, args, opts);
 }
 
-export function onEvent(name: string, eventRule: cloudwatch.EventRule, handler: EventRuleEventHandler, args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription {
+export function onEventRuleEvent(name: string, eventRule: cloudwatch.EventRule, handler: EventRuleEventHandler, args?: EventRuleEventSubscriptionArgs, opts?: pulumi.ResourceOptions): EventRuleEventSubscription {
     args = args || {};
     const func = createLambdaFunction(name + "-cloudwatch-event", handler, opts);
     return new EventRuleEventSubscription(name, eventRule, func, args, opts);

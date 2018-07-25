@@ -32,7 +32,7 @@ const sqsQueue = new aws.sqs.Queue("queue", {
 
 const c = new Promise(resolve => setTimeout(resolve, 100000));
 
-sqs.queue.onEvent("subscription", sqsQueue, async (event) => {
+sqs.onEvent("subscription", sqsQueue, async (event) => {
     const awssdk = await import("aws-sdk");
     const s3 = new awssdk.S3();
 

@@ -17,7 +17,7 @@ import * as sns from "@pulumi/aws-serverless/sns";
 
 const topic = new aws.sns.Topic("sites-to-process-topic", { });
 
-sns.topic.onEvent("for-each-url", topic, async (event) => {
+sns.onEvent("for-each-url", topic, async (event) => {
     const fetch = (await import("node-fetch")).default;
 
     const records = event.Records || [];

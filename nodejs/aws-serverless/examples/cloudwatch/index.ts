@@ -13,12 +13,12 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import * as eventRule from "@pulumi/aws-serverless/cloudwatch/eventRule";
+import * as cloudwatch from "@pulumi/aws-serverless/cloudwatch";
 import * as sns from "@pulumi/aws-serverless/sns";
 
 const topic = new aws.sns.Topic("topic", { });
 
-sns.topic.onEvent("process-topic", topic, async (event) => {
+sns.onEvent("process-topic", topic, async (event) => {
     const records = event.Records || [];
     for (const record of records) {
         const message = record.Sns.Message;
@@ -27,7 +27,7 @@ sns.topic.onEvent("process-topic", topic, async (event) => {
     }
 });
 
-eventRule.onSchedule("hourly", "rate(60 minutes)", async (event) => {
+cloudwatch.onSchedule("hourly", "rate(60 minutes)", async (event) => {
     const awssdk = await import("aws-sdk");
     const sns = new awssdk.SNS();
 

@@ -12,6 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as topic from "./topic";
-
-export { topic };
+export { onEvent } from "./topic";

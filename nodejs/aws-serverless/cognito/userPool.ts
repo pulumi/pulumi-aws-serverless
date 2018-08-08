@@ -18,7 +18,6 @@ import * as pulumi from "@pulumi/pulumi";
 import { RunError } from "@pulumi/pulumi";
 import { createLambdaFunction, Handler } from "./../function";
 import { EventSubscription } from "./../subscription";
-import { Omit } from "./../utils";
 
 interface CommonUserPoolEvent {
     // The version number of your Lambda function.

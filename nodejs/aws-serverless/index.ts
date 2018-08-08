@@ -35,14 +35,3 @@ export {
     sns,
     sqs,
 };
-
-// declare module "@pulumi/aws/s3/bucket" {
-//     export interface Bucket {
-//         onObjectCreated(name: string, handler: s3.bucket.BucketEventHandler,
-//                         args?: s3.bucket.ObjectCreatedSubscriptionArgs, opts?: pulumi.ResourceOptions): s3.bucket.BucketEventSubscription;
-//         onObjectRemoved(name: string, handler: s3.bucket.BucketEventHandler,
-//                         args?: s3.bucket.ObjectRemovedSubscriptionArgs, opts?: pulumi.ResourceOptions): s3.bucket.BucketEventSubscription;
-//         onEvent(name: string, handler: s3.bucket.BucketEventHandler,
-//                 args: s3.bucket.BucketEventSubscriptionArgs, opts?: pulumi.ResourceOptions): s3.bucket.BucketEventSubscription;
-//     }
-// }

@@ -10,10 +10,7 @@ TESTPARALLELISM := 10
 
 build::
 	yarn install
-
-	# pick up the local versions of these if possible.
-	yarn link @pulumi/pulumi || true
-	yarn link @pulumi/aws || true
+	#yarn link @pulumi/pulumi @pulumi/aws
 	tsc
 	sed -e 's/\$${VERSION}/$(VERSION)/g' < package.json > bin/package.json
 	cp ../../README.md ../../LICENSE bin/

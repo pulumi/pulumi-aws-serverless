@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 
 import { createLambdaFunction, Handler } from "./function";
-import { outputFromObject, sha1hash } from "./utils";
+import { sha1hash } from "./utils";
 
 export interface Request {
     resource: string;
@@ -187,7 +187,7 @@ export class API extends pulumi.ComponentResource {
 interface SwaggerSpec {
     swagger: string;
     info: SwaggerInfo;
-    paths: { [path: string]: { [method: string]: SwaggerOperationAsync; }; };
+    paths: { [path: string]: { [method: string]: SwaggerOperation; }; };
     "x-amazon-apigateway-binary-media-types"?: string[];
 }
 
@@ -196,17 +196,12 @@ interface SwaggerInfo {
     version: string;
 }
 
-interface SwaggerOperationAsync {
-    parameters?: any[];
-    responses?: { [code: string]: SwaggerResponse };
-    "x-amazon-apigateway-integration": ApigatewayIntegrationAsync;
-}
-
 interface SwaggerOperation {
     parameters?: any[];
     responses?: { [code: string]: SwaggerResponse };
     "x-amazon-apigateway-integration": ApigatewayIntegration;
 }
+
 interface SwaggerResponse {
     description: string;
     schema?: SwaggerSchema;
@@ -232,22 +227,13 @@ interface SwaggerAPIGatewayIntegrationResponse {
     responseParameters?: { [key: string]: string };
 }
 
-interface ApigatewayIntegrationBase {
+interface ApigatewayIntegration {
     requestParameters?: any;
     passthroughBehavior?: string;
     httpMethod: string;
     type: string;
     responses?: { [pattern: string]: SwaggerAPIGatewayIntegrationResponse };
     connectionType?: string;
-}
-
-interface ApigatewayIntegration extends ApigatewayIntegrationBase {
-    uri: string;
-    credentials?: string;
-    connectionId?: string;
-}
-
-interface ApigatewayIntegrationAsync extends ApigatewayIntegrationBase {
     uri: pulumi.Output<string>;
     credentials?: pulumi.Output<string>;
     connectionId?: pulumi.Output<string>;
@@ -300,7 +286,7 @@ function swaggerMethod(method: string): string {
     }
 }
 
-function createPathSpecLambda(lambda: aws.lambda.Function): SwaggerOperationAsync {
+function createPathSpecLambda(lambda: aws.lambda.Function): SwaggerOperation {
     const region = aws.config.requireRegion();
     const uri = lambda.arn.apply(lambdaARN =>
         `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaARN}/invocations`);
@@ -316,16 +302,12 @@ function createPathSpecLambda(lambda: aws.lambda.Function): SwaggerOperationAsyn
 }
 
 function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
-
-    const pathsOutput = outputFromObject(spec.paths, methods => outputFromObject(methods, resolveOperationDependencies));
-
-    // After all values have settled, we can produce the resulting string.
-    return pathsOutput.apply(paths =>
+    return pulumi.output(spec).apply(s =>
         JSON.stringify({
-            swagger: spec.swagger,
+            swagger: s.swagger,
             info: spec.info,
-            paths: paths,
-            "x-amazon-apigateway-binary-media-types": spec["x-amazon-apigateway-binary-media-types"],
+            paths: s.paths,
+            "x-amazon-apigateway-binary-media-types": s["x-amazon-apigateway-binary-media-types"],
             // Map paths the user doesn't have access to as 404.
             // http://docs.aws.amazon.com/apigateway/latest/developerguide/supported-gateway-response-types.html
             "x-amazon-apigateway-gateway-responses": {
@@ -343,27 +325,5 @@ function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
                 },
             },
         }));
-
-    function resolveOperationDependencies(op: SwaggerOperationAsync): pulumi.Output<SwaggerOperation> {
-        return resolveIntegrationDependencies(op["x-amazon-apigateway-integration"]).apply(integration => ({
-            parameters: op.parameters,
-            responses: op.responses,
-            "x-amazon-apigateway-integration": integration,
-        }));
-    }
-
-    function resolveIntegrationDependencies(op: ApigatewayIntegrationAsync): pulumi.Output<ApigatewayIntegration> {
-        return pulumi.all([op.uri, op.credentials, op.connectionId]).apply(([uri, credentials, connectionId]) => ({
-            requestParameters: op.requestParameters,
-            passthroughBehavior: op.passthroughBehavior,
-            httpMethod: op.httpMethod,
-            type: op.type,
-            responses: op.responses,
-            connectionType: op.connectionType,
-            uri: uri,
-            credentials: credentials,
-            connectionId: connectionId,
-        }));
-    }
 }
 

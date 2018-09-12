@@ -23,19 +23,3 @@ export function sha1hash(s: string): string {
     //     to collisions.  For now, limit the size of hashes to ensure we generate shorter/ resource names.
     return shasum.digest("hex").substring(0, 8);
 }
-
-function mapObject<T, U>(obj: Record<string, T>, func: (t: T) => U): Record<string, U> {
-    const result: Record<string, U> = {};
-    for (const k of Object.keys(obj)) {
-        result[k] = func(obj[k]);
-    }
-    return result;
-}
-
-// outputFromObject projects each property value through a function which returns an Ouput, and then returns a single Output
-// for an object with the same properties and unwrapped projected values.
-export function outputFromObject<T, U>(
-        obj: Record<string, T>,
-        func: (t: T) => pulumi.Output<U>): pulumi.Output<Record<string, U>> {
-    return pulumi.all(mapObject(obj, func));
-}

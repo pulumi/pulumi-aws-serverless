@@ -12,89 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as aws from "@pulumi/aws";
-import { iam, lambda, sqs } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { createLambdaFunction, Handler } from "./function";
-import { EventSubscription } from "./subscription";
 
-export interface QueueEvent {
-    Records: QueueRecord[];
-}
+import { sqs } from "@pulumi/aws";
 
-export interface QueueRecord {
-    messageId: string;
-    receiptHandle: string;
-    body: string;
-    attributes: {
-        ApproximateReceiveCount: string;
-        SentTimestamp: string;
-        SenderId: string;
-        ApproximateFirstReceiveTimestamp: string;
-    };
-    messageAttributes: Record<string, any>;
-    md5OfBody: string;
-    eventSource: string;
-    eventSourceARN: string;
-    awsRegion: string;
-}
+/** @deprecated use [sqs.QueueEvent] instead */
+export type QueueEvent = sqs.QueueEvent;
+/** @deprecated use [sqs.QueueRecord] instead */
+export type QueueRecord = sqs.QueueRecord;
+/** @deprecated use [sqs.QueueEventHandler] instead */
+export type QueueEventHandler = sqs.QueueEventHandler;
+/** @deprecated use [sqs.QueueSubscriptionArgs] instead */
+export type QueueSubscriptionArgs = sqs.QueueEventSubscriptionArgs;
 
-export type QueueEventHandler = Handler<QueueEvent, void>;
-
-/**
- * Arguments to control the sqs subscription.
- */
-export type QueueSubscriptionArgs = {
-    /**
-     * The largest number of records that AWS Lambda will retrieve. The maximum batch size supported
-     * by Amazon Simple Queue Service is up to 10 queue messages per batch. The default setting is
-     * 10.
-     *
-     * See https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html for more details.
-     */
-    batchSize?: number;
- };
-
-/**
- * Creates a new subscription to the given queue using the lambda provided, along with optional
- * options to control the behavior of the subscription.
- */
+/** @deprecated use [sqs.Queue.onEvent] instead */
 export function subscribe(
-    name: string, topic: sqs.Queue, handler: QueueEventHandler,
+    name: string, queue: sqs.Queue, handler: QueueEventHandler,
     args?: QueueSubscriptionArgs, opts?: pulumi.ResourceOptions): QueueEventSubscription {
 
-    args = args || {};
-    const func = createLambdaFunction(name + "-queue-subscription", handler, opts, {
-        policies: [aws.iam.AWSLambdaFullAccess, iam.AmazonSQSFullAccess],
-    });
-    return new QueueEventSubscription(name, topic, func, args, opts);
+    return queue.onEvent(name, handler, args, opts);
 }
 
-export class QueueEventSubscription extends EventSubscription {
-    /**
-     * The underlying sns object created for the subscription.
-     */
-    public readonly eventSourceMapping: lambda.EventSourceMapping;
-
-    public constructor(
-        name: string, queue: sqs.Queue, func: lambda.Function,
-        args: QueueSubscriptionArgs, opts?: pulumi.ResourceOptions) {
-
-        super("aws-serverless:queue:QueueEventSubscription", name, func, { queue: queue }, opts);
-
-        args = args || {};
-        this.permission = new aws.lambda.Permission(name, {
-            action: "lambda:*",
-            function: func,
-            principal: "sqs.amazonaws.com",
-            sourceArn: queue.arn,
-        }, { parent: this });
-
-        this.eventSourceMapping = new lambda.EventSourceMapping(name, {
-            batchSize: args.batchSize,
-            enabled: true,
-            eventSourceArn: queue.arn,
-            functionName: func.name,
-        }, { parent: this });
-    }
-}
+/** @deprecated use [sqs.QueueEventSubscription] instead */
+export const QueueEventSubscription = sqs.QueueEventSubscription;
+/** @deprecated use [sqs.QueueEventSubscription] instead */
+export type QueueEventSubscription = sqs.QueueEventSubscription;

@@ -12,86 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as aws from "@pulumi/aws";
-import { lambda, sns } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { createLambdaFunction, Handler } from "./function";
-import { EventSubscription } from "./subscription";
 
-export interface TopicEvent {
-    Records: TopicRecord[];
-}
+import { sns } from "@pulumi/aws";
 
-export interface TopicRecord {
-    EventVersion: string;
-    EventSubscriptionArn: string;
-    EventSource: string;
-    Sns: SNSItem;
-}
+/** @deprecated Use [sns.TopicEvent] instead */
+export type TopicEvent = sns.TopicEvent;
+/** @deprecated Use [sns.TopicRecord] instead */
+export type TopicRecord = sns.TopicRecord;
+/** @deprecated Use [sns.SNSItem] instead */
+export type SNSItem = sns.SNSItem;
+/** @deprecated Use [sns.SNSMessageAttribute] instead */
+export type SNSMessageAttribute = sns.SNSMessageAttribute;
+/** @deprecated Use [sns.TopicEventHandler] instead */
+export type TopicEventHandler = sns.TopicEventHandler;
+/** @deprecated Use [sns.TopicSubscriptionArgs] instead */
+export type TopicSubscriptionArgs = sns.TopicSubscriptionArgs;
 
-export interface SNSItem {
-    SignatureVersion: string;
-    Timestamp: string;
-    Signature: string;
-    SigningCertUrl: string;
-    MessageId: string;
-    Message: string;
-    MessageAttributes: { [key: string]: SNSMessageAttribute };
-    Type: string;
-    UnsubscribeUrl: string;
-    TopicArn: string;
-    Subject: string;
-}
-
-export interface SNSMessageAttribute {
-    Type: string;
-    Value: string;
-}
-
-export type TopicEventHandler = Handler<TopicEvent, void>;
-
-/**
- * Arguments to control the topic subscription.  Currently empty, but still defined in case of
- * future need.
- */
-export type TopicSubscriptionArgs = { };
-
-/**
- * Creates a new subscription to the given topic using the lambda provided, along with optional
- * options to control the behavior of the subscription.
- */
+/** @deprecated Use [sns.Topic.onEvent] instead */
 export function subscribe(
     name: string, topic: sns.Topic, handler: TopicEventHandler,
     args?: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions): TopicEventSubscription {
 
-    args = args || {};
-    const func = createLambdaFunction(name + "-topic-subscription", handler, opts);
-    return new TopicEventSubscription(name, topic, func, args, opts);
+    return topic.onEvent(name, handler, args, opts);
 }
 
-export class TopicEventSubscription extends EventSubscription {
-    /**
-     * The underlying sns object created for the subscription.
-     */
-    public readonly subscription: sns.TopicSubscription;
-
-    public constructor(
-        name: string, topic: sns.Topic, func: lambda.Function,
-        args: TopicSubscriptionArgs, opts?: pulumi.ResourceOptions) {
-
-        super("aws-serverless:topic:TopicEventSubscription", name, func, { topic: topic }, opts);
-
-        this.permission = new aws.lambda.Permission(name, {
-            action: "lambda:invokeFunction",
-            function: func,
-            principal: "sns.amazonaws.com",
-            sourceArn: topic.id,
-        }, { parent: this });
-
-        this.subscription = new aws.sns.TopicSubscription(name, {
-            topic: topic,
-            protocol: "lambda",
-            endpoint: func.arn,
-        }, { parent: this });
-    }
-}
+/** @deprecated Use [sns.TopicEventSubscription] instead */
+export const TopicEventSubscription = sns.TopicEventSubscription;
+/** @deprecated Use [sns.TopicEventSubscription] instead */
+export type TopicEventSubscription = sns.TopicEventSubscription;

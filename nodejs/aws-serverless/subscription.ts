@@ -15,9 +15,7 @@
 import { lambda } from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 
-/**
- * Base type for all subscription types.
- */
+/** @deprecated Use [lambda.EventSubscription] instead */
 export class EventSubscription extends pulumi.ComponentResource {
     public permission: lambda.Permission;
     public func: lambda.Function;

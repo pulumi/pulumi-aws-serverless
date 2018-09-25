@@ -45,18 +45,18 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@pulumi/aws@^0.15.2-dev":
-  version "0.15.2-dev-1537656187-gab8f8b2"
-  resolved "https://registry.yarnpkg.com/@pulumi/aws/-/aws-0.15.2-dev-1537656187-gab8f8b2.tgz#6273a08ca31db04715653e2c88e579ab158944f6"
+"@pulumi/aws@dev":
+  version "0.15.2-dev-1537910355-g327c12d"
+  resolved "https://registry.yarnpkg.com/@pulumi/aws/-/aws-0.15.2-dev-1537910355-g327c12d.tgz#e1c9c4301d5093f5188526c4b6f9e592cf6bb5c4"
   dependencies:
-    "@pulumi/pulumi" "^0.15.4-dev"
+    "@pulumi/pulumi" dev
     builtin-modules "3.0.0"
     read-package-tree "^5.2.1"
     resolve "^1.7.1"
 
-"@pulumi/pulumi@^0.15.4-dev":
-  version "0.15.4-dev-1537648471-ga977749b"
-  resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-0.15.4-dev-1537648471-ga977749b.tgz#a5762e0281091d3a582e7483b859cb193baa0f4c"
+"@pulumi/pulumi@dev":
+  version "0.15.4-dev-1537898302-g5d34e380"
+  resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-0.15.4-dev-1537898302-g5d34e380.tgz#73e5507aa352d15602f3269c60aa1894f1d690e9"
   dependencies:
     google-protobuf "^3.5.0"
     grpc "^1.12.2"
@@ -80,8 +80,8 @@
   resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.0.tgz#719551d2352d301ac8b81db732acb6bdc28dbdef"
 
 "@types/node@^10.1.0":
-  version "10.10.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.10.3.tgz#09c75a4ad84d6a3d286790bdd9489a4f8ee9906c"
+  version "10.11.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.11.0.tgz#ddd0d67a3b6c3810dd1a59e36675fa82de5e19ae"
 
 "@types/node@^8.0.26":
   version "8.10.30"
@@ -142,8 +142,8 @@ ascli@~1:
     optjs "~3.2.2"
 
 aws-sdk@*:
-  version "2.320.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.320.0.tgz#8089976be31e170771652f62b6796aab5dd9d7b4"
+  version "2.322.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.322.0.tgz#d9245cbdab6134bc5967644fea85daa32fd03632"
   dependencies:
     buffer "4.9.1"
     events "1.1.1"

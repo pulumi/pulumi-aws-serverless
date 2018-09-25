@@ -241,6 +241,9 @@ interface SwaggerOperation {
     parameters?: any[];
     responses?: { [code: string]: SwaggerResponse };
     "x-amazon-apigateway-integration": ApigatewayIntegration;
+
+    // The optional lambda to actualy invoke when this operation is invoked.
+    lambda?: aws.lambda.Function;
 }
 
 interface SwaggerResponse {
@@ -555,7 +558,7 @@ function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
 function createPathSpecProxy(
     target: string | pulumi.Output<Endpoint>,
     vpcLink: aws.apigateway.VpcLink | undefined,
-    useProxyPathParameter: boolean): SwaggerOperationAsync {
+    useProxyPathParameter: boolean): SwaggerOperation {
 
     const uri =
         pulumi.all([<string>target, <pulumi.Output<Endpoint>>target])
@@ -579,7 +582,7 @@ function createPathSpecProxy(
                   }
               });
 
-    const result: SwaggerOperationAsync = {
+    const result: SwaggerOperation = {
         "x-amazon-apigateway-integration": {
             responses: {
                 default: {
@@ -612,14 +615,14 @@ function createPathSpecObject(
         bucket: aws.s3.Bucket,
         key: string,
         role: aws.iam.Role,
-        pathParameter?: string): SwaggerOperationAsync {
+        pathParameter?: string): SwaggerOperation {
 
     const region = aws.config.requireRegion();
 
     const uri = bucket.bucket.apply(bucketName =>
         `arn:aws:apigateway:${region}:s3:path/${bucketName}/${key}${(pathParameter ? `/{${pathParameter}}` : ``)}`);
 
-    const result: SwaggerOperationAsync = {
+    const result: SwaggerOperation = {
         responses: {
             "200": {
                 description: "200 response",

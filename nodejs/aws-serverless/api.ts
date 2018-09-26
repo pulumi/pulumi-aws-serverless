@@ -145,11 +145,13 @@ export class API extends pulumi.ComponentResource {
         let swaggerSpec: SwaggerSpec | undefined;
         if (args.swaggerString) {
             swaggerString = pulumi.output(args.swaggerString);
-        } else if (args.routes || args.staticRoutes || args.proxyRoutes) {
+        }
+        else if (args.routes || args.staticRoutes || args.proxyRoutes) {
             swaggerSpec = createSwaggerSpec(name, args.routes, args.staticRoutes, args.proxyRoutes, { parent: this });
             swaggerString = createSwaggerString(swaggerSpec);
-        } else {
-            throw new Error("API must specify either `swaggerString`, `swaggerSpec`, or as least one type of `route` option.");
+        }
+        else {
+            throw new Error("API must specify either [swaggerString], [swaggerSpec], or as least one type of [route] option.");
         }
 
         const stageName = args.stageName || "stage";
@@ -287,10 +289,19 @@ function createSwaggerSpec(
     name: string, routes?: Route[], staticRoutes?: StaticRoute[],
     proxyRoutes?: ProxyRoute[], opts?: pulumi.ResourceOptions): SwaggerSpec {
 
-    const swagger = createBaseSwaggerSpec(name);
+    // Set up the initial swagger spec.
+    const swagger: SwaggerSpec = {
+        swagger: "2.0",
+        info: { title: name, version: "1.0" },
+        paths: {},
+        "x-amazon-apigateway-binary-media-types": ["*/*"],
+    };
+
+    // Now add all the routes to it.
     addRoutesToSwaggerSpec(name, swagger, routes, opts);
     addStaticRoutesToSwaggerSpec(name, swagger, staticRoutes, opts);
     addProxyRoutesToSwaggerSpec(name, swagger, proxyRoutes, opts);
+
     return swagger;
 }
 
@@ -307,7 +318,25 @@ function addRoutesToSwaggerSpec(
         if (!swagger.paths[route.path]) {
             swagger.paths[route.path] = {};
         }
-        swagger.paths[route.path][method] = createPathSpecLambda(lambda);
+        swagger.paths[route.path][method] = createSwaggerOperationForLambda(lambda);
+    }
+
+    return;
+
+    function createSwaggerOperationForLambda(lambda: aws.lambda.Function): SwaggerOperation {
+        const region = aws.config.requireRegion();
+        const uri = lambda.arn.apply(lambdaARN =>
+            `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaARN}/invocations`);
+
+        return {
+            "x-amazon-apigateway-integration": {
+                uri: uri,
+                passthroughBehavior: "when_no_match",
+                httpMethod: "POST",
+                type: "aws_proxy",
+            },
+            lambda: lambda,
+        };
     }
 }
 
@@ -356,7 +385,7 @@ function addStaticRoutesToSwaggerSpec(
     return;
 
     function createBucketObject(key: string, localPath: string, contentType?: string) {
-        const obj = new aws.s3.BucketObject(key, {
+        return new aws.s3.BucketObject(key, {
             bucket: bucket,
             key: key,
             source: new pulumi.asset.FileAsset(localPath),
@@ -370,8 +399,9 @@ function addStaticRoutesToSwaggerSpec(
 
         createBucketObject(key, route.localPath, route.contentType);
 
-        const pathSpec = createPathSpecObject(bucket, key, role);
-        swagger.paths[route.path] = { [method]: pathSpec };
+        swagger.paths[route.path] = {
+            [method]: createSwaggerOperationForObjectKey(key, role),
+        };
     }
 
     function processDirectory(directory: StaticRoute) {
@@ -423,8 +453,9 @@ function addStaticRoutesToSwaggerSpec(
                     if (childPath === indexPath) {
                         // We hit the file that we also want to serve as the index file. Create
                         // a specific swagger path from the server root path to it.
-                        const indexPathSpec = createPathSpecObject(bucket, childUrn, role);
-                        swagger.paths[directoryServerPath] = { [method]: indexPathSpec };
+                        swagger.paths[directoryServerPath] = {
+                            [method]: createSwaggerOperationForObjectKey(childUrn, role),
+                        };
                     }
                 }
             }
@@ -435,9 +466,76 @@ function addStaticRoutesToSwaggerSpec(
         // Take whatever path the client wants to host this folder at, and add the
         // greedy matching predicate to the end.
 
-        const swaggerPath = directoryServerPath + "{proxy+}";
-        const pathSpec = createPathSpecObject(bucket, directoryKey, role, "proxy");
-        swagger.paths[swaggerPath] = { [swaggerMethod("any")]: pathSpec };
+        swagger.paths[directoryServerPath + "{proxy+}"] = {
+            [swaggerMethod("any")]: createSwaggerOperationForObjectKey(directoryKey, role, "proxy"),
+        };
+    }
+
+    function createSwaggerOperationForObjectKey(
+            objectKey: string,
+            role: aws.iam.Role,
+            pathParameter?: string): SwaggerOperation {
+
+        const region = aws.config.requireRegion();
+
+        const uri = bucket.bucket.apply(bucketName =>
+            `arn:aws:apigateway:${region}:s3:path/${bucketName}/${objectKey}${(pathParameter ? `/{${pathParameter}}` : ``)}`);
+
+        const result: SwaggerOperation = {
+            responses: {
+                "200": {
+                    description: "200 response",
+                    schema: { type: "object" },
+                    headers: {
+                        "Content-Type": { type: "string" },
+                        "content-type": { type: "string" },
+                    },
+                },
+                "400": {
+                    description: "400 response",
+                },
+                "500": {
+                    description: "500 response",
+                },
+            },
+            "x-amazon-apigateway-integration": {
+                credentials: role.arn,
+                uri: uri,
+                passthroughBehavior: "when_no_match",
+                httpMethod: "GET",
+                type: "aws",
+                responses: {
+                    "4\\d{2}": {
+                        statusCode: "400",
+                    },
+                    "default": {
+                        statusCode: "200",
+                        responseParameters: {
+                            "method.response.header.Content-Type": "integration.response.header.Content-Type",
+                            "method.response.header.content-type": "integration.response.header.content-type",
+                        },
+                    },
+                    "5\\d{2}": {
+                        statusCode: "500",
+                    },
+                },
+            },
+        };
+
+        if (pathParameter) {
+            result.parameters = [{
+                name: pathParameter,
+                in: "path",
+                required: true,
+                type: "string",
+            }];
+
+            result["x-amazon-apigateway-integration"].requestParameters = {
+                [`integration.request.path.${pathParameter}`]: `method.request.path.${pathParameter}`,
+            };
+        }
+
+        return result;
     }
 }
 
@@ -479,21 +577,70 @@ function addProxyRoutesToSwaggerSpec(name: string, swagger: SwaggerSpec, routes?
 
         // Register two paths in the Swagger spec, for the root and for a catch all under the root
         swagger.paths[swaggerPath] = {
-            [method]: createPathSpecProxy(route.target, vpcLink, false),
+            [method]: createSwaggerOperationForProxy(route.target, vpcLink, /*useProxyPathParameter:*/ false),
         };
         swagger.paths[swaggerPathProxy] = {
-            [method]: createPathSpecProxy(route.target, vpcLink, true),
+            [method]: createSwaggerOperationForProxy(route.target, vpcLink, /*useProxyPathParameter:*/ true),
         };
     }
-}
 
-function createBaseSwaggerSpec(apiName: string): SwaggerSpec {
-    return {
-        swagger: "2.0",
-        info: { title: apiName, version: "1.0" },
-        paths: {},
-        "x-amazon-apigateway-binary-media-types": ["*/*"],
-    };
+    return;
+
+    function createSwaggerOperationForProxy(
+        target: string | pulumi.Output<Endpoint>,
+        vpcLink: aws.apigateway.VpcLink | undefined,
+        useProxyPathParameter: boolean): SwaggerOperation {
+
+        const uri =
+            pulumi.all([<string>target, <pulumi.Output<Endpoint>>target])
+                .apply(([targetStr, targetEndpoint]) => {
+                    let url = "";
+                    if (typeof targetStr === "string") {
+                        // For URL target, ensure there is a trailing `/`
+                        url = targetStr;
+                        if (!url.endsWith("/")) {
+                            url = url + "/";
+                        }
+                    } else {
+                        // For Endpoint target, construct an HTTP URL from the hostname and port
+                        url = `http://${targetEndpoint.hostname}:${targetEndpoint.port}/`;
+                    }
+
+                    if (useProxyPathParameter) {
+                        return `${url}{proxy}`;
+                    } else {
+                        return url;
+                    }
+                });
+
+        const result: SwaggerOperation = {
+            "x-amazon-apigateway-integration": {
+                responses: {
+                    default: {
+                        statusCode: "200",
+                    },
+                },
+                uri: uri,
+                passthroughBehavior: "when_no_match",
+                httpMethod: "ANY",
+                connectionType: vpcLink ? "VPC_LINK" : undefined,
+                connectionId: vpcLink ? vpcLink.id : undefined,
+                type: "http_proxy",
+            },
+        };
+        if (useProxyPathParameter) {
+            result.parameters = [{
+                name: "proxy",
+                in: "path",
+                required: true,
+                type: "string",
+            }];
+            result["x-amazon-apigateway-integration"].requestParameters = {
+                "integration.request.path.proxy": "method.request.path.proxy",
+            };
+        }
+        return result;
+    }
 }
 
 function swaggerMethod(method: string): string {
@@ -511,22 +658,6 @@ function swaggerMethod(method: string): string {
         default:
             throw new Error("Method not supported: " + method);
     }
-}
-
-function createPathSpecLambda(lambda: aws.lambda.Function): SwaggerOperation {
-    const region = aws.config.requireRegion();
-    const uri = lambda.arn.apply(lambdaARN =>
-        `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaARN}/invocations`);
-
-    return {
-        "x-amazon-apigateway-integration": {
-            uri: uri,
-            passthroughBehavior: "when_no_match",
-            httpMethod: "POST",
-            type: "aws_proxy",
-        },
-        lambda: lambda,
-    };
 }
 
 function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
@@ -553,130 +684,6 @@ function createSwaggerString(spec: SwaggerSpec): pulumi.Output<string> {
                 },
             },
         }));
-}
-
-function createPathSpecProxy(
-    target: string | pulumi.Output<Endpoint>,
-    vpcLink: aws.apigateway.VpcLink | undefined,
-    useProxyPathParameter: boolean): SwaggerOperation {
-
-    const uri =
-        pulumi.all([<string>target, <pulumi.Output<Endpoint>>target])
-              .apply(([targetStr, targetEndpoint]) => {
-                  let url = "";
-                  if (typeof targetStr === "string") {
-                      // For URL target, ensure there is a trailing `/`
-                      url = targetStr;
-                      if (!url.endsWith("/")) {
-                          url = url + "/";
-                      }
-                  } else {
-                      // For Endpoint target, construct an HTTP URL from the hostname and port
-                      url = `http://${targetEndpoint.hostname}:${targetEndpoint.port}/`;
-                  }
-
-                  if (useProxyPathParameter) {
-                      return `${url}{proxy}`;
-                  } else {
-                      return url;
-                  }
-              });
-
-    const result: SwaggerOperation = {
-        "x-amazon-apigateway-integration": {
-            responses: {
-                default: {
-                    statusCode: "200",
-                },
-            },
-            uri: uri,
-            passthroughBehavior: "when_no_match",
-            httpMethod: "ANY",
-            connectionType: vpcLink ? "VPC_LINK" : undefined,
-            connectionId: vpcLink ? vpcLink.id : undefined,
-            type: "http_proxy",
-        },
-    };
-    if (useProxyPathParameter) {
-        result.parameters = [{
-            name: "proxy",
-            in: "path",
-            required: true,
-            type: "string",
-        }];
-        result["x-amazon-apigateway-integration"].requestParameters = {
-            "integration.request.path.proxy": "method.request.path.proxy",
-        };
-    }
-    return result;
-}
-
-function createPathSpecObject(
-        bucket: aws.s3.Bucket,
-        key: string,
-        role: aws.iam.Role,
-        pathParameter?: string): SwaggerOperation {
-
-    const region = aws.config.requireRegion();
-
-    const uri = bucket.bucket.apply(bucketName =>
-        `arn:aws:apigateway:${region}:s3:path/${bucketName}/${key}${(pathParameter ? `/{${pathParameter}}` : ``)}`);
-
-    const result: SwaggerOperation = {
-        responses: {
-            "200": {
-                description: "200 response",
-                schema: { type: "object" },
-                headers: {
-                    "Content-Type": { type: "string" },
-                    "content-type": { type: "string" },
-                },
-            },
-            "400": {
-                description: "400 response",
-            },
-            "500": {
-                description: "500 response",
-            },
-        },
-        "x-amazon-apigateway-integration": {
-            credentials: role.arn,
-            uri: uri,
-            passthroughBehavior: "when_no_match",
-            httpMethod: "GET",
-            type: "aws",
-            responses: {
-                "4\\d{2}": {
-                    statusCode: "400",
-                },
-                "default": {
-                    statusCode: "200",
-                    responseParameters: {
-                        "method.response.header.Content-Type": "integration.response.header.Content-Type",
-                        "method.response.header.content-type": "integration.response.header.content-type",
-                    },
-                },
-                "5\\d{2}": {
-                    statusCode: "500",
-                },
-            },
-        },
-    };
-
-    if (pathParameter) {
-        result.parameters = [{
-            name: pathParameter,
-            in: "path",
-            required: true,
-            type: "string",
-        }];
-
-        result["x-amazon-apigateway-integration"].requestParameters = {
-            [`integration.request.path.${pathParameter}`]: `method.request.path.${pathParameter}`,
-        };
-    }
-
-    return result;
 }
 
 const apigatewayAssumeRolePolicyDocument = {

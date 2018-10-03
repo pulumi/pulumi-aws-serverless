@@ -116,7 +116,7 @@ func validateAPITest(isValid func(body string)) func(t *testing.T, stack integra
 		var err error
 		url := stack.Outputs["url"].(string)
 		// Retry a couple times on 5xx
-		for i := 0; i < 2; i++ {
+		for i := 0; i < 5; i++ {
 			resp, err = http.Get(url + "/b")
 			if !assert.NoError(t, err) {
 				return
@@ -124,9 +124,11 @@ func validateAPITest(isValid func(body string)) func(t *testing.T, stack integra
 			if resp.StatusCode < 500 {
 				break
 			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(30 * time.Second)
 		}
 		defer resp.Body.Close()
+
+		t.Logf("resp.StatusCode: %v", resp.StatusCode)
 		body, err := ioutil.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		isValid(string(body))

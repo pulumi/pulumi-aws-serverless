@@ -2,7 +2,7 @@
 
 # Pulumi Amazon Web Services (AWS) Serverless Components
 
-This package has been deprecated.  All functionality previously contained in it has moved to the [@pulumi/aws](https://github.com/pulumi/pulumi-aws) package. 
+**This package has been deprecated.  All functionality previously contained in it has moved to the [@pulumi/aws](https://github.com/pulumi/pulumi-aws) package.**
 
 While the same functionality can be achieved using `@pulumi/aws`, moving existing code to use that library is not a straight source translation.  Specifically, while usage `@pulumi/aws-serverless` APIs would result in code like:
 
